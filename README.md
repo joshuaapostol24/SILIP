@@ -33,6 +33,7 @@ MediaDevices / BarcodeDetector, jsQR, qrcode-generator, Web Share API, localStor
 See `SETUP.md`. Schema: `supabase/schema.sql`. Admin dashboard: `/admin.html`.
 
 ## Accounts
-Use **Log in / Sign up** for verified email accounts and saved profile details.
+Use **Log in / Sign up** for email/password accounts and saved profile details.
+New accounts verify their email once; regular logins use the password.
 Email codes require Supabase Email auth and email OTP templates; follow the Email accounts
 section in `SETUP.md`. With blank `config.js` credentials, guest mode still works.

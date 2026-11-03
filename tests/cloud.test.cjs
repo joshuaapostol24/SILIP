@@ -12,6 +12,12 @@ function setup(enabled = true) {
     async signInAnonymously() { user = { id: 'guest-2', is_anonymous: true }; callback('SIGNED_IN', { user }); return { data: { session: { user } } }; },
     async updateUser(input) { calls.push(['update', input]); return { data: { user } }; },
     async signInWithOtp(input) { calls.push(['otp', input]); return { data: {} }; },
+    async signInWithPassword(input) {
+      calls.push(['password-login', { email: input.email }]);
+      if (input.password !== 'CorrectPassword1!') return { error: Object.assign(new Error('Invalid login credentials'), { code: 'invalid_credentials' }) };
+      user = { id: 'existing-user', email: input.email, email_confirmed_at: '2026-11-03T00:00:00Z', is_anonymous: false };
+      callback('SIGNED_IN', { user }); return { data: { session: { user } } };
+    },
     async verifyOtp(input) {
       calls.push(['verify', input]);
       if (input.token !== '123456') return { error: new Error('expired token') };
@@ -78,4 +84,28 @@ test('unconfigured accounts cannot pretend to send or verify email', async () =>
   assert.equal(cloud.enabled, false);
   await assert.rejects(cloud.requestEmailCode('maria@gmail.com', true), /not configured/);
   await assert.rejects(cloud.verifyEmailCode('maria@gmail.com', '123456', 'email'), /not configured/);
+  await assert.rejects(cloud.signInWithPassword('maria@gmail.com', 'CorrectPassword1!'), /not configured/);
+});
+
+test('password login sends no email and restores the authenticated account', async () => {
+  const { cloud, calls } = setup();
+  await assert.rejects(cloud.signInWithPassword('existing@gmail.com', 'wrong'), /Invalid login credentials/);
+  assert.equal(cloud.hasVerifiedEmail(), false);
+  await cloud.signInWithPassword('existing@gmail.com', 'CorrectPassword1!');
+  assert.equal(cloud.uid(), 'existing-user');
+  assert.equal(cloud.hasVerifiedEmail(), true);
+  assert.equal(calls.some(c => c[0] === 'otp' || c[0] === 'update'), false);
+});
+
+test('password creation requires a verified email and never writes passwords to profiles', async () => {
+  const { cloud, calls } = setup();
+  await cloud.init();
+  await assert.rejects(cloud.setPassword('CorrectPassword1!'), /Verify your email/);
+  await cloud.verifyEmailCode('maria@gmail.com', '123456', 'email_change');
+  await assert.rejects(cloud.setPassword('short'), /at least 8/);
+  await assert.rejects(cloud.setPassword('CorrectPassword1!', 'other-user'), /Verify your email/);
+  await cloud.setPassword('CorrectPassword1!');
+  assert.equal(calls.at(-1)[0], 'update');
+  assert.equal(Object.keys(calls.at(-1)[1]).join(','), 'password');
+  assert.equal(calls.some(c => c[0] === 'upsert'), false);
 });

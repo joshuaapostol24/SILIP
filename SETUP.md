@@ -64,7 +64,9 @@ owner to read or change their profile. Stamp ownership remains protected by the 
 ## Email accounts (Gmail supported)
 
 Use **Log in / Sign up**. Create account takes a name, optional age, and email address.
-Log in takes the existing account's email. Both verify a code sent to the inbox;
+Log in takes the account's email and password and does not send an email code.
+Create account also asks for a password and confirmation (at least 8 characters),
+then verifies the email once before setting the password through Supabase Auth.
 Gmail and other email providers are accepted. No phone number or Twilio account is needed.
 The UI enforces a 60-second resend delay; Supabase also enforces server-side limits.
 
@@ -89,8 +91,14 @@ In Supabase Authentication:
    SMTP credentials belong only in the Supabase dashboard, never in frontend files.
 
 Signup links the guest via `updateUser({ email })` and verifies `email_change` OTPs.
-Login requests an existing account with `signInWithOtp` (`shouldCreateUser: false`)
-and verifies OTP type `email`. Verification is handled by Supabase, never locally.
+Login uses `signInWithPassword`. Passwords are never saved in profile rows or
+localStorage. Existing passwordless users can choose **Forgot or need a password?**:
+this sends an existing-user email OTP (`shouldCreateUser: false`), verifies type
+`email`, and then calls `updateUser({ password })` for the verified account.
+Signed-in users can also choose **Set or change password** under My account.
+Signup, recovery, and email verification still require working SMTP. Password
+login does not bypass email confirmation or repair email delivery problems.
+Auth failures now display the provider message and error code as plain text.
 
 Signing up upgrades the guest identity in place. Logging into an existing account restores
 that account's saved profile and verified stamps; it does not import another account's stamps.

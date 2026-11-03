@@ -46,6 +46,25 @@
     email() { return session && session.user ? session.user.email || '' : ''; },
     hasVerifiedEmail() { return !!(session?.user?.email && session.user.email_confirmed_at && !session.user.is_anonymous); },
 
+    async signInWithPassword(email, password) {
+      if (!enabled) throw new Error('Account service is not configured.');
+      await Cloud.init();
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      session = data.session;
+      if (!Cloud.hasVerifiedEmail()) throw new Error('Confirm your email before logging in.');
+    },
+
+    async setPassword(password, expectedUserId = Cloud.uid()) {
+      if (!enabled) throw new Error('Account service is not configured.');
+      await Cloud.init();
+      if (Cloud.uid() !== expectedUserId || !Cloud.hasVerifiedEmail()) throw new Error('Verify your email before setting a password.');
+      if (typeof password !== 'string' || password.length < 8) throw new Error('Use at least 8 characters for your password.');
+      const { data, error } = await sb.auth.updateUser({ password });
+      if (error) throw error;
+      if (data?.user && session) session = { ...session, user: data.user };
+    },
+
     async requestEmailCode(email, createAccount = false) {
       if (!enabled) throw new Error('Account service is not configured.');
       await Cloud.init();

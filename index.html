@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600&family=Great+Vibes&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=12">
+<link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body>
 
@@ -192,9 +192,19 @@
       <label for="accountEmail">Email address (Gmail)</label>
       <input id="accountEmail" type="email" autocomplete="email" inputmode="email" placeholder="yourname@gmail.com" maxlength="254" required>
       <p class="account-help">Use your Gmail address or another email address you can access.</p>
+      <fieldset id="accountPasswordFields" class="account-fields">
+        <label for="accountPassword">Password</label>
+        <input id="accountPassword" type="password" autocomplete="current-password" maxlength="128" required>
+        <div id="accountConfirmWrap" hidden>
+          <label for="accountConfirm">Confirm password</label>
+          <input id="accountConfirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" disabled>
+          <p class="account-help">Use at least 8 characters.</p>
+        </div>
+      </fieldset>
       <p class="account-help" id="accountPrivacy" hidden>After verification, your name, age, passport photo, and stamps will be saved to your account. Your email address is used for sign-in.</p>
-      <button class="btn account-primary" id="accountSend" type="submit">Send email code</button>
-      <p class="account-help">No password needed. We’ll text you a one-time verification code.</p>
+      <button class="btn account-primary" id="accountSend" type="submit">Log in</button>
+      <p class="account-help" id="accountAuthHelp">Log in with your email and password.</p>
+      <button class="btn-link" id="accountForgot" type="button">Forgot or need a password?</button>
     </form>
     <form id="accountCodeForm" hidden>
       <p id="accountCodeSent"></p>
@@ -207,6 +217,15 @@
       </div>
     </form>
   </div>
+  <form id="accountPasswordForm" hidden>
+    <h3>Set your password</h3>
+    <p class="account-help">Your email is verified. Choose a password to use for future logins.</p>
+    <label for="accountNewPassword">New password</label>
+    <input id="accountNewPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+    <label for="accountNewConfirm">Confirm new password</label>
+    <input id="accountNewConfirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+    <button class="btn account-primary" id="accountPasswordSave" type="submit">Save password</button>
+  </form>
   <form id="accountProfileForm" hidden>
     <p class="account-verified" id="accountVerified"></p>
     <label for="profileName">Full name</label>
@@ -215,6 +234,7 @@
     <input id="profileAge" type="number" min="1" max="120" inputmode="numeric">
     <p class="account-help">You can change your passport photo in My Heritage Passport.</p>
     <button class="btn account-primary" id="accountSaveProfile" type="submit">Save details</button>
+    <button class="btn-link" id="accountSetPassword" type="button">Set or change password</button>
     <button class="btn-link" id="accountSignOut" type="button">Log out</button>
   </form>
   <p id="accountMessage" role="status" aria-live="polite"></p>
@@ -264,11 +284,11 @@
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="config.js?v=12"></script>
+<script src="config.js?v=13"></script>
 <script src="vendor/supabase.js"></script>
-<script src="cloud.js?v=12"></script>
+<script src="cloud.js?v=13"></script>
 <script src="vendor/jsQR.js"></script>
-<script src="app.js?v=12"></script>
-<script src="account.js?v=12"></script>
+<script src="app.js?v=13"></script>
+<script src="account.js?v=13"></script>
 </body>
 </html>

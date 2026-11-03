@@ -10,6 +10,8 @@ const mock = `(() => {
     async init(){},uid:()=>uid,isPermanent:()=>verified,hasVerifiedEmail:()=>verified,email:()=>email,
     async fetchProfile(){return profile},
     async fetchStamps(){return uid==='other-user'?[{site_id:'casa-real',collected_at:'2026-11-03'}]:uid==='guest-ui'?[{site_id:'barasoain',collected_at:'2026-11-03'}]:[]},
+    async setPassword(password){if(!verified)throw Error('not verified');if(password.length<8)throw Error('short');calls.push({passwordUpdated:true})},
+    async signInWithPassword(address,password){calls.push({passwordLogin:true});if(password!=='CorrectPassword1!')throw Object.assign(Error('Invalid login credentials'),{code:'invalid_credentials'});verified=true;email=address;uid='other-user';profile={name:'Other owner',age:44,photo:'',issued_at:'2026-11-01T00:00:00Z'};setTimeout(()=>{cloud.onSignIn?.();window.dispatchEvent(new Event('silip:auth'))},0)},
     async requestEmailCode(address,create){calls.push({address,create});kind=create?'email_change':'email';requested=address;return kind},
     async verifyEmailCode(address,code,type){if(code!=='123456')throw Error('bad code');if(type!==kind||address!==requested)throw Error('wrong request');verified=true;email=address;if(type==='email'){uid='other-user';profile={name:'Other owner',age:44,photo:'',issued_at:'2026-11-01T00:00:00Z'}}setTimeout(()=>{cloud.onSignIn?.();window.dispatchEvent(new Event('silip:auth'))},0)},
     async saveProfile(p){if(!verified)throw Error('not verified');profile={...p};calls.push({saved:p})},
@@ -56,9 +58,12 @@ const pause=()=>new Promise(r=>setTimeout(r,150));
     await p.ev(`document.querySelector('#accountClose').click();document.querySelector('#passportCreate').click()`);await pause();
     assert.equal(await p.ev(`!document.querySelector('#accountIdentityFields').hidden`),true);
     fs.writeFileSync('assets/account-create-preview.png',Buffer.from((await p.call('Page.captureScreenshot',{format:'png'})).data,'base64'));
-    await p.ev(`document.querySelector('#accountName').value='Maria Santos';document.querySelector('#accountAge').value='26';document.querySelector('#accountEmail').value='bad';document.querySelector('#accountEmailForm').requestSubmit()`);await pause();
+    await p.ev(`document.querySelector('#accountName').value='Maria Santos';document.querySelector('#accountAge').value='26';document.querySelector('#accountEmail').value='bad';document.querySelector('#accountPassword').value='CorrectPassword1!';document.querySelector('#accountConfirm').value='MismatchPassword!';document.querySelector('#accountEmailForm').requestSubmit()`);await pause();
     assert.equal(await p.ev(`window.mockAccount.calls.length`),0);
     await p.ev(`document.querySelector('#accountEmail').value='Maria@Gmail.com';document.querySelector('#accountEmailForm').requestSubmit()`);await pause();
+    assert.equal(await p.ev(`window.mockAccount.calls.length`),0);
+    assert.equal(await p.ev(`document.querySelector('#accountMessage').textContent.includes('passwords do not match')`),true);
+    await p.ev(`document.querySelector('#accountConfirm').value='CorrectPassword1!';document.querySelector('#accountEmailForm').requestSubmit()`);await pause();
     assert.equal(await p.ev(`window.mockAccount.calls[0].address`),'maria@gmail.com');
     assert.equal(await p.ev(`document.querySelector('#accountResend').disabled`),true);
     await p.ev(`document.querySelector('#accountCode').value='000000';document.querySelector('#accountCodeForm').requestSubmit()`);await pause();
@@ -80,9 +85,13 @@ const pause=()=>new Promise(r=>setTimeout(r,150));
     assert.equal(await p.ev(`document.querySelector('#accountDialog').open`),false);
     assert.equal(await p.ev(`document.querySelector('#passportAccess').classList.contains('is-locked') && document.querySelector('#passportContent').inert`),true);
     await p.ev(`document.querySelector('#passportLogin').click()`);await pause();
-    // Advance the resend clock in this test tab to simulate waiting for the next email request.
-    await p.ev(`{const now=Date.now;Date.now=()=>now()+61000}document.querySelector('#accountEmail').value='other@gmail.com';document.querySelector('#accountEmailForm').requestSubmit()`);await pause();
-    await p.ev(`document.querySelector('#accountCode').value='123456';document.querySelector('#accountCodeForm').requestSubmit()`);await pause();
+    const emailCount = await p.ev(`window.mockAccount.calls.filter(c=>c.address).length`);
+    await p.ev(`document.querySelector('#accountEmail').value='other@gmail.com';document.querySelector('#accountPassword').value='wrong-password';document.querySelector('#accountEmailForm').requestSubmit()`);await pause();
+    assert.equal(await p.ev(`document.querySelector('#accountMessage').textContent.includes('Incorrect email or password')`),true);
+    assert.equal(await p.ev(`document.querySelector('#passportLock').hidden`),false);
+    await p.ev(`document.querySelector('#accountPassword').value='CorrectPassword1!';document.querySelector('#accountEmailForm').requestSubmit()`);await pause();
+    assert.equal(await p.ev(`window.mockAccount.calls.filter(c=>c.address).length`),emailCount);
+    assert.equal(await p.ev(`JSON.stringify(localStorage).includes('CorrectPassword1!')`),false);
     assert.equal(await p.ev(`window.SilipPassport.profile().name`),'Other owner');
     assert.equal(await p.ev(`document.querySelector('#fName').value`),'Other owner');
     assert.equal(await p.ev(`document.querySelector('#passportLock').hidden`),true);
@@ -93,7 +102,16 @@ const pause=()=>new Promise(r=>setTimeout(r,150));
     await p.ev(`document.querySelector('#accountBtn').click()`);await pause();
     await p.ev(`document.querySelector('#profileName').value='Updated owner';document.querySelector('#accountProfileForm').requestSubmit()`);await pause();
     assert.equal(await p.ev(`window.SilipPassport.profile().name`),'Updated owner');
+    await p.ev(`document.querySelector('#accountSignOut').click()`);await pause();
+    await p.ev(`document.querySelector('#accountBtn').click()`);await pause();
+    await p.ev(`document.querySelector('#accountForgot').click();{const now=Date.now;Date.now=()=>now()+61000}document.querySelector('#accountEmail').value='other@gmail.com';document.querySelector('#accountEmailForm').requestSubmit()`);await pause();
+    await p.ev(`document.querySelector('#accountCode').value='123456';document.querySelector('#accountCodeForm').requestSubmit()`);await pause();
+    assert.equal(await p.ev(`document.querySelector('#accountPasswordForm').hidden`),false);
+    await p.ev(`document.querySelector('#accountNewPassword').value='ReplacementPassword1!';document.querySelector('#accountNewConfirm').value='ReplacementPassword1!';document.querySelector('#accountPasswordForm').requestSubmit()`);await pause();
+    assert.equal(await p.ev(`window.mockAccount.calls.filter(c=>c.passwordUpdated).length`),2);
+    assert.equal(await p.ev(`JSON.stringify(localStorage).includes('ReplacementPassword1!')`),false);
     assert.deepEqual(p.errors,[]);
-    console.log('PASS: profile edits restore to the passport; no browser runtime errors');
+    console.log('PASS: password login sends no email, rejects wrong passwords, and preserves account isolation');
+    console.log('PASS: email recovery sets a new password without storing it in localStorage or profiles');
   }finally{await p.close()}
 })().catch(e=>{console.error(e);process.exit(1)});
