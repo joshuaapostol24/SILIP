@@ -59,8 +59,13 @@
   <div class="grid" id="grid"></div>
   <p class="note">Each code opens SILIP and unlocks that site’s stamp. Set the App URL to your live HTTPS address, then print and place each code at its site.</p>
 </main>
+<script src="config.js"></script>
 <script src="vendor/qrcode.js"></script>
 <script>
+(() => {
+  if (window.SILIP_CONFIG?.supabaseUrl && window.SILIP_CONFIG?.supabaseKey) {
+    location.replace('admin.html#qr'); return;
+  }
   const SITES = [
     ['barasoain', 'Barasoain Church'],
     ['casa-real', 'Casa Real'],
@@ -87,6 +92,7 @@
   input.addEventListener('input', render);
   document.getElementById('print').addEventListener('click', () => window.print());
   render();
+})();
 </script>
 </body>
 </html>

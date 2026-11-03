@@ -170,5 +170,22 @@ const pause=()=>new Promise(r=>setTimeout(r,150));
     }
     assert.deepEqual(p.errors,[]);
     console.log('PASS: admin and printable QR layouts fit mobile and desktop');
+    await p.call('Page.addScriptToEvaluateOnNewDocument',{source:`
+      Object.defineProperty(window,'SILIP_CONFIG',{get:()=>({supabaseUrl:'https://example.supabase.co',supabaseKey:'public-test'}),set:()=>{},configurable:true});
+      const client={auth:{async getSession(){return {data:{session:{user:{id:'admin-test',email:'admin@example.com',is_anonymous:false}}}}},onAuthStateChange(){}},async rpc(name){
+        if(name==='admin_get_tokens')return {data:['barasoain','casa-real','cathedral','bahay'].map(id=>({id,name:id,token:'test-'+id}))};
+        return {data:{visitors:0,collectors:0,completed:0,stamps:0,failed_scans:0,by_site:[],daily:[]}};
+      }};
+      Object.defineProperty(window,'supabase',{get:()=>({createClient:()=>client}),set:()=>{},configurable:true});
+    `});
+    await p.call('Page.navigate',{url:'http://127.0.0.1:4173/admin.html#qr'});await new Promise(r=>setTimeout(r,600));
+    assert.equal(await p.ev(`document.querySelector('#qrView').hidden`),false);
+    assert.equal(await p.ev(`document.querySelectorAll('#qrs svg').length`),4);
+    assert.equal(await p.ev(`document.querySelectorAll('#qrs .download-qr').length`),4);
+    await p.ev(`document.querySelector('#base').value='https://github.com/owner/repo';document.querySelector('#base').dispatchEvent(new Event('input'))`);
+    assert.equal(await p.ev(`document.querySelectorAll('#qrs svg').length`),0);
+    assert.equal(await p.ev(`document.querySelector('#qrError').textContent.length>0`),true);
+    assert.deepEqual(p.errors,[]);
+    console.log('PASS: authenticated QR tab renders four downloadable codes and rejects incorrect website URLs');
   }finally{await p.close()}
 })().catch(e=>{console.error(e);process.exit(1)});

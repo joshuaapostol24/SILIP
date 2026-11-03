@@ -20,6 +20,17 @@ Authentication > URL Configuration (Site URL and allowed Redirect URLs).
 ## QR codes
 - Local-only mode: `/qr.html` prints plain codes (`/?stamp=<site-id>`).
 - With the database on: use the **QR codes** tab in `/admin.html` (codes carry a secret and can be rotated).
+  Each code can be downloaded as SVG, or print all four from the dashboard.
+  `/qr.html` opens this admin generator when Supabase is configured.
+
+To generate a separate printable sheet locally, export the four `site_id, token`
+rows from `public.site_secrets` into `qr-tokens.local.json`, then run:
+
+    node scripts/generate-qr.cjs https://YOUR-SITE.vercel.app qr-tokens.local.json
+
+This creates four SVG files and `qr-output/print-all.html` (Print / Save PDF).
+The token file and generated codes are ignored by Git. Use actual site tokens;
+plain site links cannot collect stamps when Supabase is enabled.
 
 ## Photos
 The home screen uses `assets/heritage-collage.png`; the thank-you screen uses

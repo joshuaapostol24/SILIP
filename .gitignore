@@ -10,6 +10,8 @@ node_modules/
 
 # Generated deployment files and browser screenshots
 deploy/
+qr-output/
+qr-tokens.local.json
 assets/*preview*.png
 *.log
 Thumbs.db
