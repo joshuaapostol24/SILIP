@@ -5,9 +5,26 @@
   const dialog = $('#accountDialog'), message = $('#accountMessage');
   let mode = 'login', draft = null, busy = false, returnToPassport = false;
   const localProfile = () => window.SilipPassport.profile();
+  ['accountPassword', 'accountConfirm', 'accountNewPassword', 'accountNewConfirm'].forEach(id => {
+    const input = $('#' + id), wrap = document.createElement('div'), toggle = document.createElement('button');
+    wrap.className = 'password-wrap'; input.before(wrap); wrap.append(input);
+    toggle.type = 'button'; toggle.className = 'password-toggle'; toggle.textContent = 'Show';
+    toggle.setAttribute('aria-label', 'Show ' + document.querySelector('label[for="' + id + '"]').textContent.toLowerCase());
+    toggle.setAttribute('aria-controls', id); toggle.setAttribute('aria-pressed', 'false');
+    toggle.addEventListener('click', () => {
+      const visible = input.type === 'password'; input.type = visible ? 'text' : 'password';
+      toggle.textContent = visible ? 'Hide' : 'Show'; toggle.setAttribute('aria-pressed', String(visible));
+      toggle.setAttribute('aria-label', (visible ? 'Hide ' : 'Show ') + document.querySelector('label[for="' + id + '"]').textContent.toLowerCase());
+    });
+    wrap.append(toggle);
+  });
   function status(text, error = false) { message.textContent = text; message.classList.toggle('error', error); }
   function clearPasswords() {
-    ['#accountPassword', '#accountConfirm', '#accountNewPassword', '#accountNewConfirm'].forEach(s => { $(s).value = ''; });
+    ['#accountPassword', '#accountConfirm', '#accountNewPassword', '#accountNewConfirm'].forEach(s => {
+      const input = $(s); input.value = ''; input.type = 'password';
+      const toggle = input.nextElementSibling; toggle.textContent = 'Show'; toggle.setAttribute('aria-pressed', 'false');
+      toggle.setAttribute('aria-label', 'Show ' + document.querySelector('label[for="' + input.id + '"]').textContent.toLowerCase());
+    });
   }
   function accountError(e) {
     if (['user_not_found', 'session_not_found', 'refresh_token_not_found'].includes(e.code)) return 'Your saved session has expired. Refresh the page and try again.';

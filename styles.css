@@ -1,3 +1,35 @@
+@font-face {
+  font-family: 'Dancing Script';
+  font-style: normal;
+  font-weight: 500 600;
+  font-display: swap;
+  src: url(fonts/dancing-script.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Great Vibes';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/great-vibes.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(fonts/inter.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url(fonts/playfair-display.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 :root{
   --navy:#0b3a73; --navy-2:#1c3f8f; --sand:#f7e3c4; --cream:#fdf4e6; --ink:#12305a;
   --serif:"Times New Roman",Times,"Liberation Serif",serif;
@@ -243,3 +275,127 @@ dialog p{line-height:1.5;font-size:.95rem;margin:.4rem 0}
 .account-entry:focus-visible,#accountDialog button:focus-visible,#accountDialog input:focus-visible{outline:3px solid #e6a817;outline-offset:3px}
 .sync{margin:.7rem 0 0;font-size:.8rem;opacity:.8;text-align:center}
 .sync-btn{display:block;margin:.1rem auto 0}
+
+/* SILIP heritage journal: shared layout, surfaces, and interaction tokens. */
+:root{--navy:#123f70;--navy-2:#092c50;--sand:#f4e8d4;--cream:#fffaf1;--ink:#203a50;--muted:#526476;--line:#123f702b;--gold:#ad7830;--serif:"Playfair Display",Georgia,serif;--sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;--nav-height:78px}
+html,body{background:#e9e3d9;color:var(--navy)}
+body{background:radial-gradient(ellipse at top,#fdf9f0,#e7e1d7 75%);font-family:var(--sans);font-size:16px;line-height:1.5}
+button,a,input{touch-action:manipulation}
+button,input{font-family:var(--sans)}
+button,a{transition:background-color .18s,color .18s,box-shadow .18s}
+button:focus-visible,a:focus-visible,input:focus-visible,.photo:focus-within{outline:3px solid var(--gold);outline-offset:4px}
+button:disabled{cursor:default}
+#app{max-width:560px;box-shadow:0 20px 70px #18344b22;background:var(--sand)}
+.screen{padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom));scroll-padding:80px 0 105px;overscroll-behavior-y:contain}
+.brand,.brand-sub,.pp-title,.section-title,.serif-title,dialog h2,dialog h3,.passport-lock-card h3{font-family:var(--serif)}
+.brand{letter-spacing:.015em}
+.brand-sub{color:var(--muted)}
+.brand-sub.light{color:#fff}
+.account-entry,.lang{top:max(12px,env(safe-area-inset-top));min-height:44px;box-shadow:0 2px 10px #18344b08;background:var(--cream);border:1px solid var(--line);font-family:var(--sans);font-size:12px;font-style:normal}
+.account-entry{left:18px;padding:8px 14px;font-weight:600}
+.lang{right:18px;padding:8px 12px;gap:7px;backdrop-filter:none}
+.lang b{opacity:1;color:var(--muted);font-weight:500}
+.lang b.on{color:var(--navy);font-weight:700;text-underline-offset:4px}
+.bar{padding:78px 24px 23px;gap:14px;background:var(--cream);border-bottom:1px solid var(--line)}
+.bar .logo.small{width:64px;height:48px}
+.brand.xs{font-size:27px}.brand-sub.xs{font-family:var(--sans);font-size:11px;letter-spacing:.025em;margin-top:5px}
+.btn{min-height:52px;font-family:var(--sans);font-size:15px;font-weight:600;line-height:1.4;border-radius:14px;padding:15px 24px;box-shadow:none;display:inline-flex;align-items:center;justify-content:center;gap:12px}
+.btn-solid{box-shadow:0 6px 16px #123f701a}
+.btn:active{transform:scale(.985)}
+.btn-link{min-height:44px;font-family:var(--sans);font-size:13px;font-style:normal;font-weight:500;text-underline-offset:4px;padding:10px 6px;line-height:1.6}
+.btn-ghost{border:1px solid var(--navy)}
+.btn.sm{min-height:44px;font-size:13px;padding:10px 16px}
+.foot{padding:20px 24px 30px}.foot>.btn{width:100%;max-width:360px}
+.arrow{font-size:22px;font-weight:400;margin:0}
+.bottom-nav{position:absolute;inset:auto 0 0;z-index:25;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;min-height:var(--nav-height);padding:9px 12px calc(9px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:#fffaf1fa;box-shadow:0 -6px 24px #203a5008}
+.bottom-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:58px;padding:6px 2px;border:0;border-radius:13px;background:transparent;color:var(--muted);font-size:10px;font-weight:500;line-height:1.4}
+.bottom-nav button[aria-current]{color:var(--navy);background:#123f700c;font-weight:700}
+.bottom-nav svg,.btn-scan svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#navScan{color:var(--navy)}
+#navScan svg{background:var(--navy);color:#fff;border-radius:8px;box-sizing:content-box;padding:6px;margin-top:-5px}
+#home .home-top{padding:78px 20px 8px}
+.eyebrow{font:600 10px/1.5 var(--sans);letter-spacing:.2em;margin:0 0 18px;color:var(--gold)}
+.home-top .logo.big{height:76px;width:116px;margin-bottom:8px}
+.home-top .brand{font-size:44px;line-height:1.15}
+.home-top .brand-sub{font-family:var(--sans);font-size:13px;letter-spacing:.04em;margin-top:8px}
+.tagline{margin:26px 0 13px;font-size:34px;line-height:1.3}
+.home-top .lead{font-family:var(--sans);font-size:13px;line-height:1.7;color:var(--ink);max-width:400px}
+.hero{margin-top:auto}
+.hero-photo{width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;object-position:bottom}
+.hero-fade{height:80px;background:linear-gradient(var(--sand),#f4e8d466 55%,transparent)}
+.cta-wrap{top:29%;left:24px;right:24px}
+.cta-wrap .btn-outline{min-height:58px;min-width:250px;font-family:var(--sans);font-size:15px;border:1px solid #ffffffc9;border-radius:16px;box-shadow:0 8px 24px #092c5033}
+.cta-wrap .arrow{font-size:24px}
+#installBtn{min-height:44px;padding:8px 15px;border-radius:30px;background:#092c50bb;text-shadow:none;font-size:12px}
+.stamps-body,.pp-wrap{padding:27px 24px 0}
+.section-title,.stamps-body .section-title .st,.pp-title{font-size:27px;font-weight:500;line-height:1.3;letter-spacing:-.03em;margin:0 0 18px}
+.stamps-body .section-title .st{margin:0;opacity:1}
+.pp-title{margin-bottom:8px}
+.pp-sub{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:22px}
+.rank{padding:16px 18px;background:var(--cream);border:1px solid var(--line);border-radius:15px;margin-bottom:24px}
+.rank-top{gap:8px;margin-bottom:10px}.rank-name{font-size:12px;font-weight:600}.rank-count{font-size:11px;opacity:1;color:var(--muted)}
+.rank-track{height:5px;background:#123f7012}.rank-fill{background:var(--navy)}
+.stamp-wrap{filter:drop-shadow(0 5px 5px #203a5014);margin-bottom:20px}
+.stamp-sheet{background:var(--cream);padding:20px 12px}
+.stamp-grid{gap:20px 12px;padding:12px 6px}
+.stamp-cell{min-width:0;border-radius:12px;padding:5px 2px 10px;gap:5px}
+.stamp-cell .stamp-image{aspect-ratio:3/2;object-fit:contain}
+.stamp-cell .lock{position:absolute;top:4px;right:3px;padding:5px;background:var(--cream);border:1px solid var(--line);border-radius:50%;line-height:0}
+.stamp-cell .lock svg{width:10px;height:12px;color:var(--muted)}
+.stamp-name{font-family:var(--serif);font-weight:500;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
+.stamp-state{font-family:var(--sans);font-size:10px;line-height:1.5;color:var(--muted)}
+.stamp-cell:not(.locked) .stamp-state{color:#236247}
+.caption{font-family:var(--serif);font-size:15px;line-height:1.65;color:var(--ink);margin:16px 0}
+.caption br{display:none}
+.stamp-help{font-size:12px;line-height:1.7;color:var(--muted);margin-bottom:20px}
+.btn-scan{border:1px solid var(--navy);border-radius:14px;width:100%;font-size:14px}
+.passport{border:1px solid #123f7055;box-shadow:0 8px 24px #123f7012;border-radius:16px}
+.pp-page{background:repeating-linear-gradient(45deg,#eee3d508 0 2px,#b79c6c0c 2px 6px),#faf4e7;color:var(--ink)}
+.pp-page.top{border-bottom:1px dashed #123f7055;gap:12px}
+.pp-page.bottom{min-height:230px;background:repeating-linear-gradient(-45deg,#eee3d508 0 2px,#b79c6c0c 2px 6px),#faf4e7}
+.pp-fields input{min-width:0;width:100%;font-size:14px;min-height:40px;border-bottom:1px solid #123f7070;color:var(--navy)}
+.f-row input{width:50px}.f-row{font-size:11px}.f-row.small{font-size:9px;flex-wrap:wrap}.mrz{font-size:9px}
+.photo{border:1px solid var(--line);border-radius:8px}
+.passport-lock{padding:12px 0;background:transparent}
+.passport-access.is-locked .passport-lock{align-items:flex-start;padding-top:40px}
+.passport-lock-card{padding:28px 20px;background:var(--cream);border:1px solid var(--line);box-shadow:0 12px 36px #123f7018;max-width:350px}
+.passport-lock-icon{width:37px;height:44px;margin-bottom:20px}
+.passport-lock-card h3{font-size:24px;line-height:1.3;margin-bottom:12px}
+.passport-lock-card p{font-size:13px;line-height:1.8;color:var(--muted)}
+.passport-unlock{font-size:13px}
+.passport-lock-card .btn-link{font-size:12px}
+.center-head{padding:78px 20px 8px}.center-head .logo{width:92px;height:65px}.center-head .brand-sub{font-family:var(--sans);font-size:12px;margin-top:8px}
+.collected-body{padding:20px 24px 0}.serif-title{font-size:31px}.collected-body .lead{font-size:14px;line-height:1.7}
+.story{font-family:var(--serif);font-size:16px;line-height:1.7;font-style:normal;color:var(--ink)}
+dialog{padding:28px 24px;width:min(calc(100vw - 32px),440px);border:1px solid var(--line);border-radius:24px;box-shadow:0 24px 80px #092c5044;max-height:calc(100dvh - 36px);font-family:var(--sans);scroll-padding:20px}
+dialog::backdrop{background:#102b43a8;backdrop-filter:blur(4px)}
+#accountDialog h2{font-size:29px;font-weight:500;line-height:1.3;letter-spacing:-.025em;padding-right:16px}
+.account-close{width:44px;height:44px;top:12px;right:10px;font-size:27px;border-radius:50%}
+.account-intro{color:var(--muted);font-size:13px;line-height:1.7;margin-top:10px}
+.account-tabs{padding:4px;background:#123f700a;border:1px solid var(--line);border-radius:13px;gap:4px;margin:24px 0}
+.account-tabs button{border:0;border-radius:9px;min-height:44px;font-size:13px;font-weight:600;padding:9px}
+.account-tabs button[aria-pressed="true"]{box-shadow:0 2px 6px #123f701a}
+#accountDialog label{font-size:12px;font-weight:600;margin:18px 0 7px;color:var(--ink)}
+#accountDialog input{min-height:50px;font:16px/1.5 var(--sans);padding:12px 14px;border:1px solid #123f7050;border-radius:10px;background:#fffdf8}
+#accountDialog input:focus{border-color:var(--navy);box-shadow:0 0 0 3px #123f700c}
+#accountDialog .account-help{font-size:12px;color:var(--muted);line-height:1.7;opacity:1;margin:9px 0 16px}
+.account-primary{margin-top:14px;font-size:14px;border-radius:12px;min-height:52px}
+#accountMessage{font-size:13px;line-height:1.7;overflow-wrap:anywhere;margin-bottom:0}
+.account-email{padding:12px 14px;background:#2362470b;border:1px solid #23624730;border-radius:10px;overflow-wrap:anywhere;font-size:12px}
+.account-notice{font-size:13px;line-height:1.7;border:1px solid var(--line)}
+.password-wrap{position:relative}.password-wrap input{padding-right:68px!important}.password-toggle{position:absolute;right:4px;top:3px;min-width:55px;height:44px;border:0;border-radius:8px;background:none;color:var(--navy);font:600 11px var(--sans)}
+#siteDialog h3{font-size:27px;line-height:1.3;margin:16px 0 12px}
+#siteDialog p{font-size:13px;line-height:1.8;color:var(--muted)}
+.dlg-stamp{width:85%;max-width:300px}.dlg-hint{font-style:normal;padding:9px 12px;background:#123f7008;border-radius:10px;opacity:1}
+.site-close{position:absolute;right:10px;top:10px;width:44px;height:44px;border:0;border-radius:50%;background:var(--cream);color:var(--navy);font-size:26px;line-height:1;z-index:1}
+.site-location{margin-top:22px}.site-location h4{font:600 12px var(--sans);text-transform:uppercase;letter-spacing:.1em}.site-map{height:220px;border-color:var(--line);margin-top:14px}
+.dlg-map{min-height:44px;padding:12px;border:1px solid var(--line);border-radius:10px;text-decoration:none;font-size:13px;font-weight:600;margin-top:10px}
+.thanks-inner{padding:82px 28px 30px}.thanks-inner .logo.big{width:110px;height:80px}.thanks-inner .brand{font-size:40px}.thanks-inner .brand-sub{font-family:var(--sans);font-size:12px;margin-top:8px}
+.thanks-bg::after{background:linear-gradient(#092c5080,#092c50dd 75%)}
+.thank{font-size:64px;margin:32px 0 20px}.thanks-text{font-size:14px;line-height:1.8;margin:0 0 26px;text-shadow:none}.mini{font-size:12px;margin-top:18px}.reset{opacity:1;font-size:11px}
+#toast{font-family:var(--sans);font-size:13px;border-radius:14px;bottom:calc(var(--nav-height) + 16px + env(safe-area-inset-bottom));padding:12px 18px;box-shadow:0 4px 24px #092c5026}
+@media(hover:hover){.btn:hover{background:var(--navy-2);color:#fff}.bottom-nav button:hover,.stamp-cell:hover,.password-toggle:hover{background:#123f700c}.account-close:hover{background:#123f700c}.dlg-map:hover{background:var(--navy);color:#fff}}
+@media(min-width:600px){#app{height:calc(100dvh - 40px);max-height:1000px;border-radius:26px;border:1px solid #fff9;margin:20px auto}body{align-items:center}}
+@media(max-width:360px){.stamps-body,.pp-wrap{padding-left:18px;padding-right:18px}.home-top .lead{font-size:12px}.tagline{font-size:30px}.bar{padding-left:18px;padding-right:18px}.stamp-name{font-size:12px}.bottom-nav{padding-left:8px;padding-right:8px}.passport-lock-card{padding:22px 16px}.passport-lock-card h3{font-size:22px}}
+@media(max-height:740px){#home .home-top{padding-top:68px}.eyebrow{margin-bottom:10px}.home-top .logo.big{height:58px;width:90px}.home-top .brand{font-size:36px}.tagline{margin-top:18px;font-size:30px}.home-top .lead{font-size:12px}.hero-photo{aspect-ratio:1.12/1}.cta-wrap{top:25%}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

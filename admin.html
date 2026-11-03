@@ -56,6 +56,24 @@
   .tabs button.on{background:var(--navy);color:#fff}
   [hidden]{display:none!important}
   @media print{header,.tabs,.row,.no-print,.qr button{display:none!important}body{background:#fff}#statsView{display:none!important}.card{border:0;padding:0}}
+
+  :root{--navy:#123f70;--sand:#f4e8d4;--cream:#fffaf1;--ink:#203a50;--line:#123f702b}
+  body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6;background:#f4eee4}
+  header{border-bottom:1px solid var(--line);background:var(--cream);padding:18px 24px;flex-wrap:wrap}
+  header h1,h2,h3{font-family:Georgia,serif;letter-spacing:-.02em}
+  header small,header p{font-size:12px;color:#526476}
+  main{padding-top:32px}
+  button,input{min-height:44px;font-size:14px;border-radius:10px}
+  button{font-weight:600;padding:12px 18px}
+  input{border:1px solid #123f7060!important;background:#fffdf8}
+  button:focus-visible,input:focus-visible{outline:3px solid #ad7830;outline-offset:3px}
+  .card,.tile,.qr{border:1px solid var(--line);background:var(--cream);border-radius:18px;box-shadow:0 6px 20px #123f7008;padding:24px}
+  .login{margin:40px auto}.login h2{font-size:26px}.login input{width:100%;min-width:0;flex-basis:100%}
+  .muted,.note{color:#526476;opacity:1;font-size:13px}
+  .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr))}
+  @media(max-width:480px){header{padding:16px}main{padding:24px 16px}.row input,.tools input{min-width:0;width:100%;flex-basis:100%}.bar-row{grid-template-columns:minmax(90px,1fr) 1fr 40px;gap:8px;font-size:12px}.tabs{flex-wrap:wrap}.card{padding:20px}}
+  @media print{body{background:#fff}.card,.qr{box-shadow:none;border:1px solid #ccc}}
+
 </style>
 </head>
 <body>

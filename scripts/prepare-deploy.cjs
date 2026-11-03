@@ -11,7 +11,7 @@ for (const name of [
   'config.js', 'sw.js', 'manifest.json', 'admin.html', 'qr.html'
 ]) fs.copyFileSync(path.join(root, name), path.join(output, name));
 
-for (const directory of ['icons', 'vendor']) {
+for (const directory of ['icons', 'vendor', 'fonts']) {
   fs.cpSync(path.join(root, directory), path.join(output, directory), { recursive: true });
 }
 

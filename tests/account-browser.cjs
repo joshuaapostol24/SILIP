@@ -127,4 +127,48 @@ const pause=()=>new Promise(r=>setTimeout(r,150));
     assert.deepEqual(p.errors,[]);
     console.log('PASS: failed signup stays locked; old verification links return to passport');
   }finally{await p.close()}
+  p=await page(mock);
+  try {
+    for(const width of [320,390,768,1024,1440]) {
+      await p.call('Emulation.setDeviceMetricsOverride',{width,height:844,deviceScaleFactor:1,mobile:width<600});
+      for(const route of ['home','stamps','passport','thanks']) {
+        await p.ev(`window.SilipPassport.navigate('${route}')`);await pause();
+        assert.equal(await p.ev(`document.querySelector('#${route}').scrollWidth <= document.querySelector('#${route}').clientWidth + 1`),true,`${route} overflow at ${width}`);
+        assert.equal(await p.ev(`document.querySelector('.bottom-nav button').getBoundingClientRect().height >= 44`),true);
+        if(width===390)fs.writeFileSync(`assets/ui-${route}-preview.png`,Buffer.from((await p.call('Page.captureScreenshot',{format:'png'})).data,'base64'));
+      }
+      await p.ev(`document.querySelector('#langBtn').click();window.SilipPassport.navigate('stamps')`);await pause();
+      assert.equal(await p.ev(`document.querySelector('.bottom-nav [data-go="stamps"]').getAttribute('aria-current')`),'page');
+      assert.equal(await p.ev(`document.querySelector('#stamps').scrollWidth <= document.querySelector('#stamps').clientWidth+1`),true);
+      await p.ev(`document.querySelector('#langBtn').click()`);
+    }
+    await p.call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+    await p.ev(`document.querySelector('#accountBtn').click()`);await pause();
+    await p.ev(`document.querySelector('#accountPassword').value='ExamplePassword';document.querySelector('.password-toggle').click()`);
+    assert.equal(await p.ev(`document.querySelector('#accountPassword').type`),'text');
+    await p.ev(`document.querySelector('#accountClose').click()`);await pause();
+    assert.equal(await p.ev(`document.querySelector('#accountPassword').type`),'password');
+    await p.ev(`document.querySelector('#accountBtn').click()`);await pause();
+    fs.writeFileSync('assets/ui-account-preview.png',Buffer.from((await p.call('Page.captureScreenshot',{format:'png'})).data,'base64'));
+    await p.ev(`document.querySelector('#accountClose').click();window.SilipPassport.navigate('stamps');document.querySelector('#stampGrid button').click()`);await pause();
+    assert.equal(await p.ev(`document.querySelector('#siteDialog').open`),true);
+    assert.equal(await p.ev(`document.querySelector('#dlgMap').href.includes('google.com/maps')`),true);
+    fs.writeFileSync('assets/ui-map-preview.png',Buffer.from((await p.call('Page.captureScreenshot',{format:'png'})).data,'base64'));
+    assert.deepEqual(p.errors,[]);
+    console.log('PASS: mobile/tablet/desktop layouts, bilingual nav, password visibility, and stamp maps');
+  }finally{await p.close()}
+  p=await page(`Object.defineProperty(window,'SILIP_CONFIG',{get:()=>({}),set:()=>{},configurable:true});`);
+  try {
+    for(const width of [320,1440]) {
+      await p.call('Emulation.setDeviceMetricsOverride',{width,height:844,deviceScaleFactor:1,mobile:width<600});
+      for(const file of ['admin.html','qr.html']) {
+        await p.call('Page.navigate',{url:'http://127.0.0.1:4173/'+file});
+        await new Promise(r=>setTimeout(r,600));
+        assert.equal(await p.ev(`document.documentElement.scrollWidth <= innerWidth+1`),true,`${file} overflow at ${width}`);
+        if(file==='qr.html')assert.equal(await p.ev(`document.querySelectorAll('#grid .card').length`),4);
+      }
+    }
+    assert.deepEqual(p.errors,[]);
+    console.log('PASS: admin and printable QR layouts fit mobile and desktop');
+  }finally{await p.close()}
 })().catch(e=>{console.error(e);process.exit(1)});

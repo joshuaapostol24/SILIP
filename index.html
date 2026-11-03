@@ -14,10 +14,9 @@
 <meta name="apple-mobile-web-app-title" content="SILIP">
 <meta property="og:title" content="SILIP · Digital Heritage Passport">
 <meta property="og:description" content="Scan QR codes at the heritage sites of Malolos and collect digital stamps.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600&family=Great+Vibes&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=16">
+<link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/playfair-display.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles.css?v=17">
 </head>
 <body>
 
@@ -48,6 +47,7 @@
   <!-- 1. HOME -->
   <section class="screen" id="home" data-screen="home">
     <div class="home-top">
+      <p class="eyebrow" data-i18n="heritagePlace">MALOLOS, BULACAN</p>
       <svg class="logo big"><use href="#logo"/></svg>
       <h1 class="brand">SILIP</h1>
       <p class="brand-sub">Digital Heritage Passport</p>
@@ -99,7 +99,7 @@
 
       <div class="passport">
         <div class="pp-page top">
-          <label class="photo" id="photoBox">
+          <label class="photo" id="photoBox" tabindex="0" role="button" aria-label="Choose passport photo">
             <input type="file" accept="image/*" id="photoInput" hidden>
             <svg viewBox="0 0 100 110" id="photoDefault"><rect width="100" height="110" fill="#d8d9da"/><circle cx="50" cy="42" r="22" fill="#0b3a73"/><path d="M6 110 q0-38 44-38 q44 0 44 38z" fill="#0b3a73"/></svg>
             <img id="photoImg" alt="" hidden>
@@ -148,7 +148,7 @@
       <div class="stamp-wrap"><div class="stamp-sheet"><div class="stamp-grid" id="stampGrid"></div></div></div>
       <p class="caption" data-i18n="caption"></p>
       <p class="stamp-help" data-i18n="stampHelp"></p>
-      <button class="btn btn-scan" id="scanBtn">📷 <span data-i18n="scan"></span></button>
+      <button class="btn btn-scan" id="scanBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M7 7h3v3H7zm7 0h3v3h-3zM7 14h3v3H7zm7 0h3v3h-3z"/></svg><span data-i18n="scan"></span></button>
       <button class="btn-link" data-go="passport" data-i18n="viewPassportLink"></button>
     </div>
     <div class="foot">
@@ -170,6 +170,12 @@
       <button class="btn-link reset" id="resetBtn" data-i18n="reset"></button>
     </div>
   </section>
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button type="button" data-go="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10H3zM9 20v-7h6v7"/></svg><span data-i18n="navHome">Home</span></button>
+    <button type="button" data-go="stamps"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zm6-2v16m6-14v16"/></svg><span data-i18n="navSites">Heritage sites</span></button>
+    <button type="button" id="navScan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M7 7h3v3H7zm7 0h3v3h-3zM7 14h3v3H7zm7 0h3v3h-3z"/></svg><span data-i18n="navScan">Scan QR</span></button>
+    <button type="button" data-go="passport"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="10" r="4"/><path d="M8 18h8m-8-8h8m-4-4c-2 2-2 6 0 8 2-2 2-6 0-8"/></svg><span data-i18n="navPassport">Passport</span></button>
+  </nav>
 </main>
 
 <dialog id="accountDialog" aria-labelledby="accountTitle">
@@ -189,7 +195,7 @@
         <label for="accountAge">Age <span>(optional)</span></label>
         <input id="accountAge" type="number" min="1" max="120" inputmode="numeric">
       </fieldset>
-      <label for="accountEmail">Email address (Gmail)</label>
+      <label for="accountEmail">Email address</label>
       <input id="accountEmail" type="email" autocomplete="email" inputmode="email" placeholder="yourname@gmail.com" maxlength="254" required>
       <p class="account-help">Use your Gmail address or another email address you can access.</p>
       <fieldset id="accountPasswordFields" class="account-fields">
@@ -229,8 +235,9 @@
   <p id="accountMessage" role="status" aria-live="polite"></p>
 </dialog>
 
-<dialog id="siteDialog">
+<dialog id="siteDialog" aria-labelledby="dlgTitle">
   <form method="dialog">
+    <button type="submit" class="site-close" value="close" aria-label="Close heritage site">×</button>
     <div class="dlg-stamp" id="dlgStamp"></div>
     <h3 id="dlgTitle"></h3>
     <p id="dlgStory"></p>
@@ -260,11 +267,11 @@
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="config.js?v=16"></script>
+<script src="config.js?v=17"></script>
 <script src="vendor/supabase.js"></script>
-<script src="cloud.js?v=16"></script>
+<script src="cloud.js?v=17"></script>
 <script src="vendor/jsQR.js"></script>
-<script src="app.js?v=16"></script>
-<script src="account.js?v=16"></script>
+<script src="app.js?v=17"></script>
+<script src="account.js?v=17"></script>
 </body>
 </html>

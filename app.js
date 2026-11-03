@@ -5,6 +5,8 @@
   /* ---------- Content (EN / FIL) ---------- */
   const I18N = {
     en: {
+      heritagePlace: 'MALOLOS, BULACAN', navHome: 'Home', navSites: 'Heritage sites', navScan: 'Scan QR', navPassport: 'Passport',
+      collectedLabel: 'Collected', visitLabel: 'View location',
       passportLocked: 'Unlock your heritage passport',
       passportUnlockText: 'Create an account to fully unlock your passport and sync your name and collected stamps.',
       passportCreate: 'Create an account to unlock', passportLogin: 'Already have an account? Log in',
@@ -26,7 +28,7 @@
       reset: 'Reset my passport (demo)', resetConfirm: 'Clear your name, photo and all collected stamps?',
       rank0: 'Newcomer', rank1: 'Heritage Explorer', rank2: 'Heritage Guardian', rank3: 'Heritage Keeper', stampsWord: 'stamps',
       locked: 'Visit this site and scan its QR code to unlock the stamp.', got: 'Stamp collected ✓',
-      demo: 'Simulate scan (demo)', close: 'Close', maps: '📍 Open in Maps', directions: 'Get directions', location: 'Location', stampHelp: 'Tap any stamp to see its heritage site and location.',
+      demo: 'Simulate scan (demo)', close: 'Close', maps: 'Open in Maps', directions: 'Get directions', location: 'Location', stampHelp: 'Tap any stamp to see its heritage site and location.',
       scanMsg: 'Point your camera at the QR code at the heritage site.', cancel: 'Cancel',
       notSite: 'That QR code isn’t a SILIP heritage site.', already: 'You already collected this stamp.',
       noCam: 'Camera scanning isn’t available here. Use your phone’s camera app to scan the QR code.',
@@ -36,10 +38,12 @@
       rateLimited: 'Too many tries. Please wait a minute and scan again.',
       verifying: 'Checking your stamp…',
       offlineSaved: 'Stamp saved. It will be verified when you’re back online.',
-      syncBtn: '☁ My account / Save progress',
-      syncOn: '☁ Synced', syncAcct: '☁ Synced · {email}', syncOff: '☁ Offline — will sync later', syncPend: '☁ {n} waiting to verify'
+      syncBtn: 'My account / Save progress',
+      syncOn: 'Synced', syncAcct: 'Synced · {email}', syncOff: 'Offline — will sync later', syncPend: '{n} waiting to verify'
     },
     fil: {
+      heritagePlace: 'MALOLOS, BULACAN', navHome: 'Simula', navSites: 'Mga pook', navScan: 'Mag-scan', navPassport: 'Pasaporte',
+      collectedLabel: 'Nakolekta', visitLabel: 'Lokasyon',
       passportLocked: 'I-unlock ang iyong pasaporte ng pamana',
       passportUnlockText: 'Gumawa ng account para lubos na ma-unlock ang pasaporte at ma-sync ang iyong pangalan at mga nakolektang selyo.',
       passportCreate: 'Gumawa ng account para ma-unlock', passportLogin: 'May account ka na? Mag-log in',
@@ -61,7 +65,7 @@
       reset: 'I-reset ang aking pasaporte (demo)', resetConfirm: 'Buburahin ang pangalan, larawan at lahat ng nakolektang selyo?',
       rank0: 'Baguhan', rank1: 'Tagatuklas ng Pamana', rank2: 'Tagapagbantay ng Pamana', rank3: 'Tagapangalaga ng Pamana', stampsWord: 'selyo',
       locked: 'Bisitahin ang pook na ito at i-scan ang QR code nito para ma-unlock ang selyo.', got: 'Nakolekta na ang selyo ✓',
-      demo: 'Gayahin ang pag-scan (demo)', close: 'Isara', maps: '📍 Buksan sa Maps', directions: 'Mga direksyon', location: 'Lokasyon', stampHelp: 'Pindutin ang alinmang selyo para makita ang pook-pamana at lokasyon nito.',
+      demo: 'Gayahin ang pag-scan (demo)', close: 'Isara', maps: 'Buksan sa Maps', directions: 'Mga direksyon', location: 'Lokasyon', stampHelp: 'Pindutin ang alinmang selyo para makita ang pook-pamana at lokasyon nito.',
       scanMsg: 'Itutok ang camera sa QR code sa pook-pamana.', cancel: 'Kanselahin',
       notSite: 'Hindi ito QR code ng isang pook-pamana ng SILIP.', already: 'Nakolekta mo na ang selyong ito.',
       noCam: 'Hindi magagamit ang camera scanning dito. Gamitin ang camera app ng iyong telepono.',
@@ -71,8 +75,8 @@
       rateLimited: 'Napakaraming pagsubok. Maghintay ng isang minuto bago mag-scan muli.',
       verifying: 'Sinusuri ang iyong selyo…',
       offlineSaved: 'Na-save ang selyo. Ibe-verify ito kapag online ka na muli.',
-      syncBtn: '☁ Aking account / I-save ang progreso',
-      syncOn: '☁ Naka-sync', syncAcct: '☁ Naka-sync · {email}', syncOff: '☁ Offline — magsi-sync mamaya', syncPend: '☁ {n} naghihintay ma-verify'
+      syncBtn: 'Aking account / I-save ang progreso',
+      syncOn: 'Naka-sync', syncAcct: 'Naka-sync · {email}', syncOff: 'Offline — magsi-sync mamaya', syncPend: '{n} naghihintay ma-verify'
     }
   };
 
@@ -163,6 +167,10 @@
     if (name === 'verify-account') name = 'passport';
     if (!$('#' + name)) name = 'home';
     current = name;
+    $$('.bottom-nav [data-go]').forEach(b => {
+      if (b.dataset.go === name) b.setAttribute('aria-current', 'page');
+      else b.removeAttribute('aria-current');
+    });
     $$('.screen').forEach(s => { const on = s.id === name; if (!rerender) { s.hidden = !on; if (on) s.scrollTop = 0; } else s.hidden = !on; });
     renderRank();
     if (name === 'stamps') renderStamps();
@@ -244,6 +252,9 @@
       b.setAttribute('aria-haspopup', 'dialog');
       b.innerHTML = stampMarkup(site) + (got ? '' : '<span class="lock" aria-hidden="true"><svg viewBox="0 0 16 20" fill="currentColor"><path d="M3 8V5a5 5 0 0 1 10 0v3h1v11H2V8Zm2 0h6V5a3 3 0 0 0-6 0Z"/><path d="M8 12v3" stroke="#f2f0ee" stroke-width="2" stroke-linecap="round"/></svg></span>');
       b.addEventListener('click', () => openSite(site));
+      const title = document.createElement('span'); title.className = 'stamp-name'; title.textContent = site.name;
+      const hint = document.createElement('span'); hint.className = 'stamp-state'; hint.textContent = got ? t('collectedLabel') + ' ✓' : t('visitLabel') + ' ↗';
+      b.append(title, hint);
       grid.appendChild(b);
     });
   }
@@ -540,6 +551,10 @@
 
   $('#syncBtn').addEventListener('click', () => {
     window.dispatchEvent(new CustomEvent('silip:open-account', { detail: { mode: 'login' } }));
+  });
+  $('#navScan').addEventListener('click', () => $('#scanBtn').click());
+  $('#photoBox').addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#photoInput').click(); }
   });
 
   /* ---------- Toast ---------- */

@@ -38,3 +38,11 @@ Signup opens the passport immediately; login uses email and password. No OTP or
 email link is needed. Turn **Confirm email OFF** in Supabase Authentication and
 run **supabase/email-accounts.sql** for an existing database. See SETUP.md.
 With blank config.js credentials, guest mode still works.
+
+## Interface
+The parchment and navy theme uses locally bundled Playfair Display, Inter,
+Dancing Script, and Great Vibes fonts; their open-source licenses are in fonts/.
+The PWA caches the fonts for offline use. Persistent bottom navigation connects
+Home, Heritage sites, Scan QR, and Passport in both supported languages.
+Browser checks cover 320, 390, 768, 1024, and 1440px widths, password visibility,
+account isolation, passport access, and stamp map links.
