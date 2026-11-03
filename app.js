@@ -36,10 +36,7 @@
       rateLimited: 'Too many tries. Please wait a minute and scan again.',
       verifying: 'Checking your stamp…',
       offlineSaved: 'Stamp saved. It will be verified when you’re back online.',
-      syncBtn: '☁ Save progress to email', syncTitle: 'Keep your passport safe',
-      syncText: 'Add your email to keep your stamps if you change phone or clear your browser. Only your stamps are saved online.',
-      syncSave: 'Save my progress', syncRestore: 'Restore my passport',
-      syncSent: 'Check your email and open the link to finish.', syncErr: 'Couldn’t send the email. Check the address and try again.',
+      syncBtn: '☁ My account / Save progress',
       syncOn: '☁ Synced', syncAcct: '☁ Synced · {email}', syncOff: '☁ Offline — will sync later', syncPend: '☁ {n} waiting to verify'
     },
     fil: {
@@ -74,10 +71,7 @@
       rateLimited: 'Napakaraming pagsubok. Maghintay ng isang minuto bago mag-scan muli.',
       verifying: 'Sinusuri ang iyong selyo…',
       offlineSaved: 'Na-save ang selyo. Ibe-verify ito kapag online ka na muli.',
-      syncBtn: '☁ I-save ang progreso sa email', syncTitle: 'Ingatan ang iyong pasaporte',
-      syncText: 'Idagdag ang iyong email para mapanatili ang iyong mga selyo kapag nagpalit ka ng telepono o nabura ang browser. Ang mga selyo mo lang ang sine-save online.',
-      syncSave: 'I-save ang progreso ko', syncRestore: 'Ibalik ang aking pasaporte',
-      syncSent: 'Tingnan ang iyong email at buksan ang link para matapos.', syncErr: 'Hindi naipadala ang email. Suriin ang address at subukan muli.',
+      syncBtn: '☁ Aking account / I-save ang progreso',
       syncOn: '☁ Naka-sync', syncAcct: '☁ Naka-sync · {email}', syncOff: '☁ Offline — magsi-sync mamaya', syncPend: '☁ {n} naghihintay ma-verify'
     }
   };
@@ -166,6 +160,7 @@
   /* ---------- Router ---------- */
   let current = null, lastCollected = null;
   function show(name, rerender = false) {
+    if (name === 'verify-account') name = 'passport';
     if (!$('#' + name)) name = 'home';
     current = name;
     $$('.screen').forEach(s => { const on = s.id === name; if (!rerender) { s.hidden = !on; if (on) s.scrollTop = 0; } else s.hidden = !on; });
@@ -289,7 +284,7 @@
     return l1 + '\n' + l2;
   }
   function passportUnlocked() {
-    return !!(Cloud.enabled && Cloud.hasVerifiedEmail() && state.uid === Cloud.uid());
+    return !!(Cloud.enabled && Cloud.hasAccount() && state.uid === Cloud.uid());
   }
   function renderPassportAccess() {
     const locked = !passportUnlocked();
@@ -482,7 +477,7 @@
     profileTimer = setTimeout(saveProfileChanges, 600);
   }
   async function saveProfileChanges() {
-    if (!Cloud.enabled || !Cloud.hasVerifiedEmail() || state.uid !== Cloud.uid() || !state.name.trim()) return;
+    if (!Cloud.enabled || !Cloud.hasAccount() || state.uid !== Cloud.uid() || !state.name.trim()) return;
     const uid = state.uid, profile = profileData();
     if (profile.age !== '' && (!Number.isInteger(Number(profile.age)) || Number(profile.age) < 1 || Number(profile.age) > 120)) return;
     try {
@@ -543,16 +538,9 @@
   };
   window.addEventListener('online', async () => { if (state.profileDirty) await saveProfileChanges(); syncAll(); });
 
-  const syncDlg = $('#syncDialog'), syncMsg = $('#syncMsg');
-  $('#syncBtn').addEventListener('click', () => { syncMsg.textContent = ''; syncDlg.showModal(); });
-  $('#syncClose').addEventListener('click', () => syncDlg.close());
-  async function emailAction(fn) {
-    const email = $('#syncEmail').value.trim();
-    if (!/^\S+@\S+\.\S+$/.test(email)) { syncMsg.textContent = t('syncErr'); return; }
-    try { await fn(email); syncMsg.textContent = t('syncSent'); } catch (e) { syncMsg.textContent = t('syncErr'); }
-  }
-  $('#syncSave').addEventListener('click', () => emailAction(e => Cloud.linkEmail(e)));
-  $('#syncRestore').addEventListener('click', () => emailAction(e => Cloud.signInEmail(e)));
+  $('#syncBtn').addEventListener('click', () => {
+    window.dispatchEvent(new CustomEvent('silip:open-account', { detail: { mode: 'login' } }));
+  });
 
   /* ---------- Toast ---------- */
   let tt;
@@ -587,8 +575,8 @@
       if (Cloud.enabled) { try { await Cloud.init(); state.uid = state.uid || Cloud.uid(); } catch (e) {} }
       await collect(qrStamp, qrToken);
     } else {
-      const h = location.hash.slice(1);
-      show(['home', 'stamps', 'passport', 'thanks', 'verify-account'].includes(h) ? h : 'home');
+      const h = location.hash === '#verify-account' ? 'passport' : location.hash.slice(1);
+      show(['home', 'stamps', 'passport', 'thanks'].includes(h) ? h : 'home');
     }
     syncAll();
   })();

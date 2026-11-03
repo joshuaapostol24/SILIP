@@ -5,7 +5,6 @@
   const lib = window.supabase && window.supabase.createClient;
   const enabled = !!(cfg.supabaseUrl && cfg.supabaseKey && lib);
   let sb = null, session = null, ready = null, recovering = null;
-  const redirectTo = () => location.origin + location.pathname.replace(/[^/]*$/, '');
   const missingSession = error => ['user_not_found', 'session_not_found', 'refresh_token_not_found'].includes(error?.code);
 
   // A deleted Auth user can leave an unexpired JWT in this browser. Recover only
@@ -74,7 +73,7 @@
     uid() { return session && session.user ? session.user.id : null; },
     isPermanent() { return !!(session && session.user && !session.user.is_anonymous); },
     email() { return session && session.user ? session.user.email || '' : ''; },
-    hasVerifiedEmail() { return !!(session?.user?.email && session.user.email_confirmed_at && !session.user.is_anonymous); },
+    hasAccount() { return !!(session?.user?.email && !session.user.is_anonymous); },
 
     async signInWithPassword(email, password) {
       if (!enabled) throw new Error('Account service is not configured.');
@@ -82,48 +81,39 @@
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) throw error;
       session = data.session;
-      if (!Cloud.hasVerifiedEmail()) throw new Error('Confirm your email before logging in.');
+      if (!Cloud.hasAccount()) throw new Error('Could not log into your account.');
     },
 
     async setPassword(password, expectedUserId = Cloud.uid()) {
       if (!enabled) throw new Error('Account service is not configured.');
       await Cloud.init();
-      if (Cloud.uid() !== expectedUserId || !Cloud.hasVerifiedEmail()) throw new Error('Verify your email before setting a password.');
+      if (Cloud.uid() !== expectedUserId || !Cloud.hasAccount()) throw new Error('Log in before setting a password.');
       if (typeof password !== 'string' || password.length < 8) throw new Error('Use at least 8 characters for your password.');
       const { data, error } = await sb.auth.updateUser({ password });
       if (error) throw error;
       if (data?.user && session) session = { ...session, user: data.user };
     },
 
-    async requestEmailCode(email, createAccount = false) {
+    async createAccount(email, password) {
       if (!enabled) throw new Error('Account service is not configured.');
       await Cloud.init();
-      // Upgrade the guest identity to keep its verified stamps on the same account.
-      let result = createAccount
-        ? await sb.auth.updateUser({ email }, { emailRedirectTo: redirectTo() })
-        : await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: redirectTo() } });
-      if (createAccount && missingSession(result.error)) {
-        // Covers a user deleted after startup. Retry the explicit signup once only.
+      if (Cloud.hasAccount()) throw new Error('Log out before creating another account.');
+      if (typeof password !== 'string' || password.length < 8) throw new Error('Use at least 8 characters for your password.');
+      // With Confirm email OFF, Supabase upgrades this guest without sending email.
+      // Keeping the UID also keeps all server-validated stamps owned by this guest.
+      let result = await sb.auth.updateUser({ email, password });
+      if (missingSession(result.error)) {
         await recoverGuestSession();
-        result = await sb.auth.updateUser({ email }, { emailRedirectTo: redirectTo() });
+        result = await sb.auth.updateUser({ email, password });
       }
       if (result.error) throw result.error;
-      return createAccount ? 'email_change' : 'email';
-    },
-
-    async verifyEmailCode(email, token, type) {
-      if (!enabled) throw new Error('Account service is not configured.');
-      await Cloud.init();
-      if (!['email', 'email_change'].includes(type)) throw new Error('Request a new code.');
-      const { data, error } = await sb.auth.verifyOtp({ email, token, type });
-      if (error) throw error;
-      session = data.session;
-      if (!Cloud.hasVerifiedEmail()) throw new Error('Email verification is incomplete.');
+      if (result.data?.user && session) session = { ...session, user: result.data.user };
+      if (!Cloud.hasAccount()) throw new Error('Turn OFF Confirm email in Supabase Authentication → Sign In / Providers, then try again.');
     },
 
     async fetchProfile() {
       await Cloud.init();
-      if (!Cloud.hasVerifiedEmail()) return null;
+      if (!Cloud.hasAccount()) return null;
       const { data, error } = await sb.from('profiles').select('name, age, photo, issued_at').eq('user_id', Cloud.uid()).maybeSingle();
       if (error) throw error;
       return data;
@@ -132,7 +122,7 @@
     async saveProfile(profile, expectedUserId = Cloud.uid()) {
       await Cloud.init();
       if (Cloud.uid() !== expectedUserId) throw new Error('Account changed. Please try again.');
-      if (!Cloud.hasVerifiedEmail()) throw new Error('Verify your email before saving your profile.');
+      if (!Cloud.hasAccount()) throw new Error('Log in before saving your profile.');
       const { error } = await sb.from('profiles').upsert({
         user_id: expectedUserId, name: profile.name.trim(),
         age: profile.age === '' || profile.age == null ? null : Number(profile.age),
@@ -158,20 +148,6 @@
       const { data, error } = await sb.from('stamps').select('site_id, collected_at');
       if (error) throw error;
       return data || [];
-    },
-
-    /** Attach an email to the current anonymous passport so it can be restored elsewhere. */
-    async linkEmail(email) {
-      await Cloud.init();
-      const { error } = await sb.auth.updateUser({ email }, { emailRedirectTo: redirectTo() });
-      if (error) throw error;
-    },
-
-    /** Email a sign-in link to restore an existing passport on this device. */
-    async signInEmail(email) {
-      await Cloud.init();
-      const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo(), shouldCreateUser: false } });
-      if (error) throw error;
     },
 
     /** Forget this identity and start a fresh anonymous one (used by "reset my passport"). */

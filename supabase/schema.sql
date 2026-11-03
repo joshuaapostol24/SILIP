@@ -1,7 +1,7 @@
 -- =====================================================================
 -- SILIP · Digital Heritage Passport — Supabase schema
 -- Run once in: Supabase Dashboard → SQL Editor → New query → Run
--- Requires: Authentication → Providers → "Allow anonymous sign-ins" ON
+-- Requires: Confirm email OFF; Authentication → Providers → "Allow anonymous sign-ins" ON
 -- =====================================================================
 
 -- ---------- Tables ----------
@@ -44,7 +44,7 @@ create table if not exists public.admins (
   user_id uuid primary key references auth.users(id) on delete cascade
 );
 
--- Email addresses and verification status belong to Supabase Auth, not editable profile rows.
+-- Email addresses and passwords belong to Supabase Auth, not editable profile rows.
 create table if not exists public.profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   name text not null check (length(trim(name)) between 1 and 100),
@@ -53,29 +53,32 @@ create table if not exists public.profiles (
   issued_at timestamptz not null default now()
 );
 
--- Consult authoritative Auth data so clients cannot claim that an email is verified.
-create or replace function public.has_verified_email()
+create or replace function public.has_account()
 returns boolean language sql stable security definer set search_path = ''
 as $$
   select exists (select 1 from auth.users u
-    where u.id = (select auth.uid()) and u.email_confirmed_at is not null
-      and coalesce(u.email, '') <> '' and not coalesce(u.is_anonymous, false));
+    where u.id = (select auth.uid()) and coalesce(u.email, '') <> ''
+      and not coalesce(u.is_anonymous, false));
 $$;
-revoke all on function public.has_verified_email() from public, anon;
-grant execute on function public.has_verified_email() to authenticated;
+revoke all on function public.has_account() from public, anon;
+grant execute on function public.has_account() to authenticated;
 alter table public.profiles enable row level security;
 drop policy if exists "read own profile" on public.profiles;
 drop policy if exists "create own verified profile" on public.profiles;
 drop policy if exists "update own verified profile" on public.profiles;
+drop policy if exists "create own account profile" on public.profiles;
+drop policy if exists "update own account profile" on public.profiles;
 create policy "read own profile" on public.profiles for select to authenticated
-  using (user_id = (select auth.uid()) and (select public.has_verified_email()));
-create policy "create own verified profile" on public.profiles for insert to authenticated
-  with check (user_id = (select auth.uid()) and (select public.has_verified_email()));
-create policy "update own verified profile" on public.profiles for update to authenticated
-  using (user_id = (select auth.uid()) and (select public.has_verified_email()))
-  with check (user_id = (select auth.uid()) and (select public.has_verified_email()));
+  using (user_id = (select auth.uid()) and (select public.has_account()));
+create policy "create own account profile" on public.profiles for insert to authenticated
+  with check (user_id = (select auth.uid()) and (select public.has_account()));
+create policy "update own account profile" on public.profiles for update to authenticated
+  using (user_id = (select auth.uid()) and (select public.has_account()))
+  with check (user_id = (select auth.uid()) and (select public.has_account()));
 revoke all on public.profiles from anon, authenticated;
 grant select, insert, update on public.profiles to authenticated;
+drop function if exists public.has_verified_phone();
+drop function if exists public.has_verified_email();
 
 -- ---------- Seed the four heritage sites ----------
 insert into public.sites (id, name, est, sort) values
@@ -244,7 +247,7 @@ grant execute on function public.is_admin(), public.collect_stamp(text, text),
   to authenticated;
 
 -- ---------- Make yourself an admin ----------
--- 1. Open /admin.html on your site and sign in with your email (magic link).
+-- 1. Open /admin.html on your site and sign in with your SILIP email and password.
 -- 2. The page shows an "access denied" box containing a ready-made line like the one below.
 --    Copy it into the SQL Editor and run it once:
 --    insert into public.admins (user_id) values ('<your-user-id>');

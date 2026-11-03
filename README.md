@@ -34,6 +34,7 @@ See `SETUP.md`. Schema: `supabase/schema.sql`. Admin dashboard: `/admin.html`.
 
 ## Accounts
 Use **Log in / Sign up** for email/password accounts and saved profile details.
-New accounts verify their email once; regular logins use the password.
-Email codes require Supabase Email auth and email OTP templates; follow the Email accounts
-section in `SETUP.md`. With blank `config.js` credentials, guest mode still works.
+Signup opens the passport immediately; login uses email and password. No OTP or
+email link is needed. Turn **Confirm email OFF** in Supabase Authentication and
+run **supabase/email-accounts.sql** for an existing database. See SETUP.md.
+With blank config.js credentials, guest mode still works.

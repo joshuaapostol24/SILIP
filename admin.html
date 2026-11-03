@@ -77,10 +77,11 @@
   <!-- sign in -->
   <section class="card login" id="loginView" hidden>
     <h2>Admin sign in</h2>
-    <p class="muted">Enter your admin email. We’ll send a one-time sign-in link.</p>
+    <p class="muted">Log in with your SILIP account email and password.</p>
     <form id="loginForm">
       <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
-      <button>Send link</button>
+      <input id="password" type="password" autocomplete="current-password" placeholder="Password" required>
+      <button>Log in</button>
     </form>
     <p class="msg" id="loginMsg" role="status"></p>
   </section>
@@ -145,11 +146,11 @@
   if (!(cfg.supabaseUrl && cfg.supabaseKey && window.supabase)) { show('noCfg'); return; }
 
   const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey, { auth: { persistSession: true, detectSessionInUrl: true } });
-  const here = () => location.origin + location.pathname;
   const fmt = n => Number(n || 0).toLocaleString('en-US');
   let stats = null, timer = null, tokens = [];
 
   async function boot() {
+    clearInterval(timer);
     const { data } = await sb.auth.getSession();
     const user = data.session && data.session.user;
     if (!user || user.is_anonymous) { show('loginView'); return; }
@@ -166,12 +167,16 @@
 
   $('#loginForm').addEventListener('submit', async e => {
     e.preventDefault();
-    $('#loginMsg').textContent = 'Sending…';
-    const { error } = await sb.auth.signInWithOtp({ email: $('#email').value.trim(), options: { emailRedirectTo: here() } });
-    $('#loginMsg').textContent = error ? 'Couldn’t send the link: ' + error.message : 'Check your email and open the link.';
+    $('#loginMsg').textContent = 'Logging in...';
+    const button = $('#loginForm button'); button.disabled = true;
+    try {
+      const { error } = await sb.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value });
+      $('#loginMsg').textContent = error ? error.message : '';
+    } catch (error) { $('#loginMsg').textContent = error.message || 'Could not log in.'; }
+    finally { $('#password').value = ''; button.disabled = false; }
   });
   $('#signOut').addEventListener('click', async () => { await sb.auth.signOut(); clearInterval(timer); location.reload(); });
-  sb.auth.onAuthStateChange(ev => { if (ev === 'SIGNED_IN') boot(); });
+  sb.auth.onAuthStateChange(ev => { if (ev === 'SIGNED_IN') setTimeout(boot, 0); });
 
   async function loadStats() {
     const { data, error } = await sb.rpc('admin_stats');

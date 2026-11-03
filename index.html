@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600&family=Great+Vibes&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=15">
+<link rel="stylesheet" href="styles.css?v=16">
 </head>
 <body>
 
@@ -170,32 +170,6 @@
       <button class="btn-link reset" id="resetBtn" data-i18n="reset"></button>
     </div>
   </section>
-  <section class="screen" id="verify-account" hidden aria-labelledby="verificationTitle">
-    <header class="bar">
-      <svg class="logo small"><use href="#logo"/></svg>
-      <div><div class="brand xs">SILIP</div><div class="brand-sub xs">Digital Heritage Passport</div></div>
-    </header>
-    <div class="verification-body">
-      <button type="button" class="btn-link verification-back" id="verificationBack">← Back to account details</button>
-      <div class="verification-card">
-        <p class="verification-step">Account verification</p>
-        <svg class="verification-envelope" viewBox="0 0 64 52" aria-hidden="true"><rect x="3" y="3" width="58" height="46" rx="8" fill="none" stroke="currentColor" stroke-width="3"/><path d="m5 8 27 21L59 8M5 45l18-18m36 18L41 27" fill="none" stroke="currentColor" stroke-width="3"/></svg>
-        <h1 id="verificationTitle">Confirm your account</h1>
-        <p id="accountCodeSent"></p>
-        <form id="accountCodeForm" hidden>
-          <label for="accountCode">Email verification code</label>
-          <input id="accountCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" minlength="6" maxlength="10" required disabled>
-          <button class="btn account-primary" id="accountVerify" type="submit" disabled>Confirm account</button>
-          <p class="verification-help">Enter the code from your email. Your account is confirmed only after the code is accepted.</p>
-          <div class="account-code-actions">
-            <button class="btn-link" id="accountResend" type="button">Resend code</button>
-            <button class="btn-link" id="accountChangeEmail" type="button">Change email</button>
-          </div>
-        </form>
-        <p id="verificationMessage" role="status" aria-live="polite"></p>
-      </div>
-    </div>
-  </section>
 </main>
 
 <dialog id="accountDialog" aria-labelledby="accountTitle">
@@ -227,15 +201,14 @@
           <p class="account-help">Use at least 8 characters.</p>
         </div>
       </fieldset>
-      <p class="account-help" id="accountPrivacy" hidden>After verification, your name, age, passport photo, and stamps will be saved to your account. Your email address is used for sign-in.</p>
+      <p class="account-help" id="accountPrivacy" hidden>Your name, age, passport photo, and stamps will be saved to your account. Your email address is used for sign-in.</p>
       <button class="btn account-primary" id="accountSend" type="submit">Log in</button>
       <p class="account-help" id="accountAuthHelp">Log in with your email and password.</p>
-      <button class="btn-link" id="accountForgot" type="button">Forgot or need a password?</button>
     </form>
   </div>
   <form id="accountPasswordForm" hidden>
     <h3>Set your password</h3>
-    <p class="account-help">Your email is verified. Choose a password to use for future logins.</p>
+    <p class="account-help">Choose a new password for your account.</p>
     <label for="accountNewPassword">New password</label>
     <input id="accountNewPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
     <label for="accountNewConfirm">Confirm new password</label>
@@ -243,7 +216,7 @@
     <button class="btn account-primary" id="accountPasswordSave" type="submit">Save password</button>
   </form>
   <form id="accountProfileForm" hidden>
-    <p class="account-verified" id="accountVerified"></p>
+    <p class="account-email" id="accountEmailLabel"></p>
     <label for="profileName">Full name</label>
     <input id="profileName" autocomplete="name" maxlength="100" required>
     <label for="profileAge">Age <span>(optional)</span></label>
@@ -276,19 +249,6 @@
   </form>
 </dialog>
 
-<dialog id="syncDialog">
-  <form method="dialog" onsubmit="return false">
-    <h3 data-i18n="syncTitle"></h3>
-    <p data-i18n="syncText"></p>
-    <input id="syncEmail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" aria-label="Email">
-    <p class="dlg-hint" id="syncMsg" role="status"></p>
-    <div class="dlg-actions">
-      <button type="button" class="btn btn-solid sm" id="syncSave" data-i18n="syncSave"></button>
-      <button type="button" class="btn btn-ghost sm" id="syncRestore" data-i18n="syncRestore"></button>
-      <button type="button" class="btn-link" id="syncClose" data-i18n="close"></button>
-    </div>
-  </form>
-</dialog>
 
 <div id="scanner" hidden>
   <video id="scanVideo" playsinline muted></video>
@@ -300,11 +260,11 @@
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="config.js?v=15"></script>
+<script src="config.js?v=16"></script>
 <script src="vendor/supabase.js"></script>
-<script src="cloud.js?v=15"></script>
+<script src="cloud.js?v=16"></script>
 <script src="vendor/jsQR.js"></script>
-<script src="app.js?v=15"></script>
-<script src="account.js?v=15"></script>
+<script src="app.js?v=16"></script>
+<script src="account.js?v=16"></script>
 </body>
 </html>

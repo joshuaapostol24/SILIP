@@ -4,9 +4,8 @@
  *   supabaseUrl  e.g. https://abcdxyz.supabase.co
  *   supabaseKey  the public "anon" / publishable key (safe to ship in a web app).
  * NEVER put the service_role / secret key here.
- * Email accounts require Email auth, email confirmation, manual identity
- * linking, email OTP templates, and the latest Supabase profile policies.
- * Configure SMTP in Supabase for delivery to addresses outside the project team.
+ * Email/password accounts require Email auth and anonymous sign-ins ON,
+ * Confirm email OFF, and the latest Supabase account profile policies.
  */
 window.SILIP_CONFIG = {
   supabaseUrl: 'https://vsgfzscpptthrjxlshib.supabase.co',

@@ -235,29 +235,11 @@ dialog p{line-height:1.5;font-size:.95rem;margin:.4rem 0}
 .account-fields{padding:0;margin:0;border:0;min-width:0}
 #accountDialog .account-help{font-size:.8rem;line-height:1.5;opacity:.85;margin:8px 0 14px}
 .account-primary{width:100%;margin-top:10px;font-size:1rem;border-radius:12px;padding:13px}
-.account-code-actions{display:flex;justify-content:space-between;gap:8px;margin-top:12px}
 .account-notice{background:var(--sand);padding:12px;border-radius:10px}
-.account-verified{font-size:.9rem;color:#216142}
+.account-email{font-size:.9rem;color:#216142}
 #accountMessage{min-height:1.5em;font-size:.9rem;line-height:1.5}
 #accountMessage.error{color:#9b2929}
 #accountDialog button:disabled{opacity:.5;cursor:wait}
-#accountCode{font-size:24px;letter-spacing:.2em;text-align:center}
 .account-entry:focus-visible,#accountDialog button:focus-visible,#accountDialog input:focus-visible{outline:3px solid #e6a817;outline-offset:3px}
-.verification-body{padding:24px 20px 40px;margin:auto 0}
-.verification-back{font-style:normal;font-weight:400;margin-bottom:20px}
-.verification-card{padding:28px 20px;background:var(--cream);border:1px solid #0b3a7326;border-radius:22px;box-shadow:0 10px 30px #0b3a731a;text-align:center}
-.verification-step{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;margin:0 0 24px}
-.verification-envelope{width:64px;height:52px;margin:0 auto 16px;display:block}
-.verification-card h1{font-size:1.8rem;font-weight:400;margin:0 0 14px}
-#accountCodeSent{font-size:1rem;line-height:1.5;overflow-wrap:anywhere}
-#accountCodeForm label{display:block;text-align:left;font-weight:bold;font-size:.9rem;margin:24px 0 8px}
-#accountCode{display:block;width:100%;min-height:56px;border:1px solid #0b3a7355;border-radius:12px;background:white;color:var(--navy);font-family:var(--serif)}
-.verification-help{font-size:.85rem;line-height:1.5;margin:16px 0}
-#verificationMessage{font-size:.95rem;line-height:1.5;min-height:1.5em;overflow-wrap:anywhere}
-#verificationMessage.error{color:#9b2929}
-#verify-account button:disabled,#verify-account input:disabled{opacity:.5;cursor:default}
-#verify-account button:focus-visible,#verify-account input:focus-visible{outline:3px solid #e6a817;outline-offset:3px}
 .sync{margin:.7rem 0 0;font-size:.8rem;opacity:.8;text-align:center}
 .sync-btn{display:block;margin:.1rem auto 0}
-#syncDialog input{width:100%;padding:.7rem .8rem;border:2px solid var(--navy);border-radius:10px;font:inherit;background:#fff;color:var(--navy);margin-top:.4rem}
-#syncDialog .dlg-hint{min-height:1.2rem}

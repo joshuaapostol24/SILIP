@@ -9,14 +9,11 @@ token-checked stamps, cross-device sync and the admin dashboard. Free tier is en
 
 ## 2. Auth settings (Authentication)
 - **Sign In / Providers → Allow anonymous sign-ins: ON.** Visitors get an invisible account, no signup form.
-- **Sign In / Providers → Email: ON** (default). Used for "Save my progress" and the admin login.
-- **Confirm email: ON.** Phone authentication can remain OFF.
-- **Allow manual identity linking: ON** so Create account can attach a verified email
-  to the current guest account and retain that guest's server-verified stamps.
+- **Sign In / Providers → Email: ON** (default). Used for account creation, password login, and the admin login.
+- **Confirm email: OFF.** Save changes. Signup and login use email/password with no email code. Phone authentication can remain OFF.
 - **URL Configuration:** set *Site URL* to your deployed address (e.g. `https://silip.netlify.app`)
-  and add `https://silip.netlify.app/**` under *Redirect URLs*. Magic links fail without this.
-- Supabase's built-in email sender is rate-limited and meant for testing. Before a public launch,
-  add a custom SMTP provider (Authentication → Emails → SMTP Settings).
+  and add `https://silip.netlify.app/**` under *Redirect URLs*. Use your actual deployed address.
+- SMTP and email templates are not required for account creation or login.
 
 ## 3. Create the tables and functions
 SQL Editor → New query → paste all of `supabase/schema.sql` → Run.
@@ -37,7 +34,7 @@ Use only the public **anon / publishable** key. Never paste the `service_role` /
 
 ## 5. Deploy, then make yourself admin
 1. Deploy the folder (Netlify, Vercel, GitHub Pages…).
-2. Open `https://YOUR-SITE/admin.html`, enter your email, open the link you receive.
+2. Open `https://YOUR-SITE/admin.html`, log in with an account created in SILIP using its email and password.
 3. The page will say access is denied and show one line of SQL containing your user id.
    Copy it into the SQL Editor and run it once. Reload `admin.html`.
 
@@ -55,88 +52,60 @@ Use only the public **anon / publishable** key. Never paste the `service_role` /
   kills a leaked code; checking "failed scans" and per-day scan spikes on the dashboard helps you spot abuse.
 
 ## Privacy
-Guests keep their name, age, and photo on their device. Creating a verified email account
+Guests keep their name, age, and photo on their device. Creating an email/password account
 stores these details in a private `profiles` row so they can be restored on another device.
-The email address and verification status are managed by Supabase Auth. Profile rows do
-not contain editable email addresses or verification flags. RLS allows only the verified
+The email address and password are managed by Supabase Auth. Profile rows do
+not contain editable email addresses or passwords. RLS allows only the signed-in
 owner to read or change their profile. Stamp ownership remains protected by the existing policies.
 
-## Email accounts (Gmail supported)
+## Email/password accounts (no verification)
 
-Use **Log in / Sign up**. Create account takes a name, optional age, and email address.
-Log in takes the account's email and password and does not send an email code.
-Create account also asks for a password and confirmation (at least 8 characters),
-then verifies the email once before setting the password through Supabase Auth.
-Clicking **Create account** opens the separate `#verify-account` screen. Enter the
-code from the email and press **Confirm account**. Supabase checks the code before
-the app saves the password and profile and opens the passport. If the send request
-fails, the screen displays the error and disables confirmation until a request
-succeeds. **Resend code** and **Change email** are available there.
-Reloading this screen restores pending verification details for the current tab;
-passwords and codes are never stored. After a reload, a verified user is asked to
-set their password again to finish signup.
-Gmail and other email providers are accepted. No phone number or Twilio account is needed.
-The UI enforces a 60-second resend delay; Supabase also enforces server-side limits.
+1. Open Supabase **Authentication > Sign In / Providers**.
+2. Keep **Allow new users to sign up**, **Allow anonymous sign-ins**, and **Email**
+   enabled. Turn **Confirm email OFF** and press **Save changes**.
+3. In **SQL Editor**, run the entire **supabase/email-accounts.sql** file to update an
+   existing database. Existing profiles and stamps are retained. New projects can
+   run **supabase/schema.sql**, which contains the same account policies.
+4. After the GitHub deployment finishes, reload SILIP. Create an account with a
+   name, optional age, email, password, and password confirmation.
+5. Signup opens the unlocked passport immediately. Log out and log in with the
+   email/password to check that the saved name and stamps return.
 
-For a database that already ran the SMS version of the schema, run
-`supabase/email-accounts.sql` in SQL Editor. This replaces phone-only profile policies
-with verified-email policies without deleting profiles or stamps. New installations
-can run the full `supabase/schema.sql` instead.
+Signup uses updateUser({ email, password }) to upgrade the current guest account.
+Supabase's automatic confirmation setting must be enabled by turning Confirm email
+OFF. Keeping the same user ID preserves that guest's server-validated stamps.
+Login uses signInWithPassword. There are no OTP requests or confirmation pages,
+including in the admin dashboard and the sync menu. Old #verify-account links
+return to the passport.
 
-In Supabase Authentication:
+Passwords are handled only by Supabase Auth and never saved in profile rows or
+localStorage. Profiles require a real signed-in email account, and RLS restricts
+access to the row owned by auth.uid(). Guests keep a blurred, locked passport
+until they create an account or log in. Account signup and login need no SMTP.
+Signed-in users can change their password from My account. Email-code password
+recovery has been removed; an administrator must help users who lose access.
+Existing passwordless users need an administrator to set a password before login.
+Existing accounts still marked unconfirmed in Auth may also need administrator
+help; the app does not grant itself permission to modify other Auth users.
 
-1. Keep Email, Confirm email, anonymous sign-ins, and manual linking enabled.
-2. Under Emails / Templates, open **Magic Link** and **Change Email Address**.
-   Add `<p>Your SILIP verification code is: <strong>{{ .Token }}</strong></p>`
-   to both templates and save. The complete suggested template is in
-   `supabase/templates/email-code.html`. It retains a confirmation link so the
-   existing admin magic-link login continues to work. Enter the numeric code in
-   the SILIP verification page for account creation or password recovery.
-3. Keep the deployed site URL and allowed redirect URLs configured correctly.
-4. For initial testing without SMTP, use the email belonging to a project team
-   member. Supabase's default email sender only delivers to project team addresses
-   and is heavily rate-limited. Configure custom SMTP for other users' Gmail addresses.
-   SMTP credentials belong only in the Supabase dashboard, never in frontend files.
+A successful signup saves the profile before opening the passport. If saving
+fails, the form keeps the entered name and age for retry using Save details.
+Logging into an existing account restores only that account's saved details and
+stamps. Logging out clears the displayed profile and starts a fresh guest.
+Saved sessions are checked against the Auth server; deleted users recover once
+to a fresh guest. Connection failures do not discard the current session.
 
-Signup links the guest via `updateUser({ email })` and verifies `email_change` OTPs.
-Login uses `signInWithPassword`. Passwords are never saved in profile rows or
-localStorage. Existing passwordless users can choose **Forgot or need a password?**:
-this sends an existing-user email OTP (`shouldCreateUser: false`), verifies type
-`email`, and then calls `updateUser({ password })` for the verified account.
-Signed-in users can also choose **Set or change password** under My account.
-Signup, recovery, and email verification still require working SMTP. Password
-login does not bypass email confirmation or repair email delivery problems.
-Auth failures now display the provider message and error code as plain text.
-If no email arrives, check **Supabase → Logs → Auth** for the failed request's
-underlying SMTP error. A successful browser request does not prove inbox delivery.
-Check the sender, SMTP credentials, and provider logs against that error; changing
-the database schema does not repair SMTP delivery. Keep credentials private.
-Saved sessions are checked against Supabase Auth on startup. If the user or
-refresh token has been deleted, the app signs out only this browser and creates
-a fresh guest session. Signup also retries once if its guest was deleted after
-startup. Network and SMTP errors do not trigger this reset.
-
-Signing up upgrades the guest identity in place. Logging into an existing account restores
-that account's saved profile and verified stamps; it does not import another account's stamps.
-Log out clears the displayed profile and starts a new guest passport on this device.
-Passport edits save to the verified account; offline edits remain local and retry when online.
-The passport view is blurred and locked for guests. Its Create account and Log in
-buttons open email authentication directly; successful verification returns to the
-unlocked passport with the account's saved name and collected stamps. Guests can
-still explore heritage sites and collect stamps before registering.
-
-Official setup references: [Email OTP](https://supabase.com/docs/guides/auth/auth-email-passwordless),
-[Email delivery / SMTP](https://supabase.com/docs/guides/auth/auth-smtp),
-[Anonymous identity linking](https://supabase.com/docs/guides/auth/auth-anonymous).
+Official references: [Password authentication](https://supabase.com/docs/guides/auth/passwords),
+[Anonymous account upgrades](https://supabase.com/docs/guides/auth/auth-anonymous).
 
 ## Test checklist
 - [ ] Open a printed code → stamp collected, shows as "Synced".
 - [ ] Edit one letter of `k` in the URL → "QR code isn't valid".
 - [ ] Airplane mode, scan → "waiting to verify"; reconnect → status becomes "Synced".
-- [ ] Save progress with your email, open the link on a second device → same stamps appear.
+- [ ] Log in with email/password on a second device → the same saved profile and stamps appear.
 - [ ] `admin.html` shows the scan; *New token* makes the old printed code stop working.
 - [ ] Open the site in a private window, collect 4 stamps → "Completed passports" goes up by one.
-- [ ] Create account with a test email → wrong OTP rejected; correct OTP saves the profile.
+- [ ] Create account → profile saves and passport opens without an OTP or email link.
 - [ ] Log out → the displayed name, photo, and stamps clear; log back in → saved details return.
 - [ ] Sign in on a second device → the same private profile and verified stamps appear.
 - [ ] Account A cannot read or update account B's `profiles` row through the API.
