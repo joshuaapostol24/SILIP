@@ -1,0 +1,16 @@
+# Local dependencies, hosting metadata, and editor preferences
+node_modules/
+.vercel/
+.vscode/
+
+# Local credentials (the publishable Supabase key in config.js is public)
+.env
+.env.*
+!.env.example
+
+# Generated deployment files and browser screenshots
+deploy/
+assets/*preview*.png
+*.log
+Thumbs.db
+.DS_Store

@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SILIP · Digital Heritage Passport</title>
+<meta name="description" content="Explore the heritage sites of Malolos, scan QR codes and collect digital stamps.">
+<meta name="theme-color" content="#0b3a73">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SILIP">
+<meta property="og:title" content="SILIP · Digital Heritage Passport">
+<meta property="og:description" content="Scan QR codes at the heritage sites of Malolos and collect digital stamps.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600&family=Great+Vibes&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=12">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logo" viewBox="0 0 200 130">
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="4">
+      <path d="M8 72 Q100 -2 192 72 Q100 136 8 72Z"/>
+      <path d="M22 76 Q100 14 178 76" stroke-width="2.5"/>
+      <path d="M60 28 L50 16M80 18 L75 4M120 18 L125 4M140 28 L150 16M100 14 V0"/>
+      <path d="M30 96 Q65 112 100 100 T170 96" stroke-width="3"/>
+      <path d="M44 108 Q72 120 100 112 T156 108" stroke-width="3"/>
+    </g>
+    <circle cx="100" cy="68" r="34" fill="currentColor"/>
+    <g fill="#fff">
+      <path fill-rule="evenodd" d="M82 50h12v12H82zM85 53h6v6h-6zM106 50h12v12h-12zM109 53h6v6h-6zM82 74h12v12H82zM85 77h6v6h-6z"/>
+      <rect x="98" y="66" width="4" height="4"/><rect x="104" y="72" width="4" height="4"/>
+      <rect x="110" y="66" width="4" height="4"/><rect x="108" y="80" width="10" height="4"/>
+      <rect x="98" y="76" width="4" height="4"/><rect x="98" y="84" width="4" height="4"/>
+      <rect x="114" y="74" width="4" height="4"/><rect x="98" y="50" width="4" height="4"/>
+    </g>
+  </symbol>
+</svg>
+
+<main id="app">
+  <button type="button" class="account-entry" id="accountBtn">Log in / Sign up</button>
+  <button class="lang" id="langBtn" aria-label="Change language / Palitan ang wika"><b id="langEN">EN</b><span>|</span><b id="langFIL">FIL</b></button>
+
+  <!-- 1. HOME -->
+  <section class="screen" id="home" data-screen="home">
+    <div class="home-top">
+      <svg class="logo big"><use href="#logo"/></svg>
+      <h1 class="brand">SILIP</h1>
+      <p class="brand-sub">Digital Heritage Passport</p>
+      <p class="script tagline" data-i18n="tagline"></p>
+      <p class="lead" data-i18n="lead"></p>
+    </div>
+    <div class="hero" id="heroHome">
+      <img class="hero-photo" src="assets/heritage-collage.png" alt="Photo collage of Barasoain Church, Malolos folk dancers, and a crowned religious statue" fetchpriority="high" decoding="async">
+      <div class="hero-fade" aria-hidden="true"></div>
+      <div class="cta-wrap">
+        <button class="btn btn-outline" data-go="stamps"><span data-i18n="start"></span> <span class="arrow">→</span></button>
+        <button class="btn-link" id="installBtn" hidden data-i18n="install"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. STAMP COLLECTED -->
+  <section class="screen" id="collected" data-screen="collected" hidden>
+    <div class="confetti" id="confetti" aria-hidden="true"></div>
+    <header class="center-head">
+      <svg class="logo"><use href="#logo"/></svg>
+      <h1 class="brand sm">SILIP</h1>
+      <p class="brand-sub sm">Digital Heritage Passport</p>
+    </header>
+    <div class="collected-body">
+      <h2 class="serif-title" id="colTitle"></h2>
+      <p class="lead" id="colText"></p>
+      <div class="stamp-big" id="colStamp"></div>
+      <p class="story" id="colStory"></p>
+      <button class="btn-link" id="saveStamp" data-i18n="saveStamp"></button>
+    </div>
+    <div class="foot">
+      <button class="btn btn-solid" data-go="passport"><span data-i18n="viewPassport"></span> <span class="arrow">→</span></button>
+    </div>
+  </section>
+
+  <!-- 3. PASSPORT -->
+  <section class="screen" id="passport" data-screen="passport" hidden>
+    <header class="bar">
+      <svg class="logo small"><use href="#logo"/></svg>
+      <div><div class="brand xs">SILIP</div><div class="brand-sub xs">Digital Heritage Passport</div></div>
+    </header>
+    <div class="pp-wrap">
+      <h2 class="pp-title" data-i18n="ppTitle"></h2>
+      <p class="pp-sub" data-i18n="ppSub"></p>
+      <div class="passport-access is-locked" id="passportAccess">
+      <div id="passportContent" inert aria-hidden="true">
+      <div class="rank"><div class="rank-top"><b class="rank-name"></b><span class="rank-count"></span></div><div class="rank-track"><i class="rank-fill"></i></div></div>
+
+      <div class="passport">
+        <div class="pp-page top">
+          <label class="photo" id="photoBox">
+            <input type="file" accept="image/*" id="photoInput" hidden>
+            <svg viewBox="0 0 100 110" id="photoDefault"><rect width="100" height="110" fill="#d8d9da"/><circle cx="50" cy="42" r="22" fill="#0b3a73"/><path d="M6 110 q0-38 44-38 q44 0 44 38z" fill="#0b3a73"/></svg>
+            <img id="photoImg" alt="" hidden>
+          </label>
+          <div class="pp-fields">
+            <input class="f-name" id="fName" maxlength="40" autocomplete="name" aria-label="Name">
+            <div class="f-row"><b data-i18n="age"></b><input id="fAge" inputmode="numeric" maxlength="3" aria-label="Age"></div>
+            <div class="f-row small"><b data-i18n="issued"></b><span id="fIssued"></span></div>
+          </div>
+          <div class="seal" id="seal" hidden><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#e6a817" stroke="#b9800b" stroke-width="3"/><circle cx="50" cy="50" r="38" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 3"/><text x="50" y="46" text-anchor="middle" font-size="26" fill="#fff">★</text><text x="50" y="64" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="Georgia,serif">COMPLETE</text></svg></div>
+          <pre class="mrz" id="mrz"></pre>
+        </div>
+        <div class="pp-page bottom">
+          <div class="pp-stamps" id="ppStamps"></div>
+        </div>
+      </div>
+      <button class="btn-link" id="savePassport" data-i18n="savePassport"></button>
+      <p class="sync" id="syncStatus" hidden></p>
+      <button class="btn-link sync-btn" id="syncBtn" data-i18n="syncBtn" hidden></button>
+      </div>
+      <div class="passport-lock" id="passportLock">
+        <div class="passport-lock-card">
+          <svg class="passport-lock-icon" viewBox="0 0 64 72" aria-hidden="true"><path d="M16 30V20a16 16 0 0 1 32 0v10" fill="none" stroke="currentColor" stroke-width="6"/><rect x="7" y="29" width="50" height="39" rx="9" fill="currentColor"/><circle cx="32" cy="45" r="5" fill="#fdf4e6"/><path d="M32 47v9" stroke="#fdf4e6" stroke-width="5" stroke-linecap="round"/></svg>
+          <h3 data-i18n="passportLocked">Unlock your heritage passport</h3>
+          <p data-i18n="passportUnlockText">Create an account to fully unlock your passport and sync your name and collected stamps.</p>
+          <button type="button" class="btn passport-unlock" id="passportCreate" data-i18n="passportCreate">Create an account to unlock</button>
+          <button type="button" class="btn-link" id="passportLogin" data-i18n="passportLogin">Already have an account? Log in</button>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="foot">
+      <button class="btn btn-solid" data-go="stamps"><span data-i18n="viewStamps"></span> <span class="arrow">→</span></button>
+    </div>
+  </section>
+
+  <!-- 4. STAMPS TO BE COLLECTED -->
+  <section class="screen" id="stamps" data-screen="stamps" hidden>
+    <header class="bar">
+      <svg class="logo small"><use href="#logo"/></svg>
+      <div><div class="brand xs">SILIP</div><div class="brand-sub xs">Digital Heritage Passport</div></div>
+    </header>
+    <div class="stamps-body">
+      <h2 class="section-title"><span data-i18n="stampsTitle" class="st"></span> <span id="progress"></span></h2>
+      <div class="rank"><div class="rank-top"><b class="rank-name"></b><span class="rank-count"></span></div><div class="rank-track"><i class="rank-fill"></i></div></div>
+      <div class="stamp-wrap"><div class="stamp-sheet"><div class="stamp-grid" id="stampGrid"></div></div></div>
+      <p class="caption" data-i18n="caption"></p>
+      <p class="stamp-help" data-i18n="stampHelp"></p>
+      <button class="btn btn-scan" id="scanBtn">📷 <span data-i18n="scan"></span></button>
+      <button class="btn-link" data-go="passport" data-i18n="viewPassportLink"></button>
+    </div>
+    <div class="foot">
+      <button class="btn btn-solid" data-go="thanks"><span data-i18n="next"></span> <span class="arrow">→</span></button>
+    </div>
+  </section>
+
+  <!-- 5. THANK YOU -->
+  <section class="screen" id="thanks" data-screen="thanks" hidden>
+    <div class="thanks-bg" id="thanksBg"></div>
+    <div class="thanks-inner">
+      <svg class="logo big light"><use href="#logo"/></svg>
+      <h1 class="brand light">SILIP</h1>
+      <p class="brand-sub light">Digital Heritage Passport</p>
+      <p class="script thank" data-i18n="thank"></p>
+      <p class="thanks-text" data-i18n="thanksText"></p>
+      <button class="btn btn-solid outlined" data-go="home"><span data-i18n="again"></span> <span class="arrow">→</span></button>
+      <p class="mini" data-i18n="mini"></p>
+      <button class="btn-link reset" id="resetBtn" data-i18n="reset"></button>
+    </div>
+  </section>
+</main>
+
+<dialog id="accountDialog" aria-labelledby="accountTitle">
+  <button type="button" class="account-close" id="accountClose" aria-label="Close account">×</button>
+  <h2 id="accountTitle">Your SILIP account</h2>
+  <p class="account-intro">Keep your profile and heritage passport with you.</p>
+  <p id="accountUnavailable" class="account-notice" hidden>Email sign-in is not connected yet. You can continue exploring as a guest.</p>
+  <div id="accountAuth">
+    <div class="account-tabs" role="group" aria-label="Account options">
+      <button type="button" id="accountLoginTab" aria-pressed="true">Log in</button>
+      <button type="button" id="accountCreateTab" aria-pressed="false">Create account</button>
+    </div>
+    <form id="accountEmailForm">
+      <fieldset id="accountIdentityFields" class="account-fields" hidden>
+        <label for="accountName">Full name</label>
+        <input id="accountName" autocomplete="name" maxlength="100">
+        <label for="accountAge">Age <span>(optional)</span></label>
+        <input id="accountAge" type="number" min="1" max="120" inputmode="numeric">
+      </fieldset>
+      <label for="accountEmail">Email address (Gmail)</label>
+      <input id="accountEmail" type="email" autocomplete="email" inputmode="email" placeholder="yourname@gmail.com" maxlength="254" required>
+      <p class="account-help">Use your Gmail address or another email address you can access.</p>
+      <p class="account-help" id="accountPrivacy" hidden>After verification, your name, age, passport photo, and stamps will be saved to your account. Your email address is used for sign-in.</p>
+      <button class="btn account-primary" id="accountSend" type="submit">Send email code</button>
+      <p class="account-help">No password needed. We’ll text you a one-time verification code.</p>
+    </form>
+    <form id="accountCodeForm" hidden>
+      <p id="accountCodeSent"></p>
+      <label for="accountCode">Verification code</label>
+      <input id="accountCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" minlength="6" maxlength="10" required>
+      <button class="btn account-primary" id="accountVerify" type="submit">Verify and continue</button>
+      <div class="account-code-actions">
+        <button class="btn-link" id="accountResend" type="button">Resend code</button>
+        <button class="btn-link" id="accountChangeEmail" type="button">Change email</button>
+      </div>
+    </form>
+  </div>
+  <form id="accountProfileForm" hidden>
+    <p class="account-verified" id="accountVerified"></p>
+    <label for="profileName">Full name</label>
+    <input id="profileName" autocomplete="name" maxlength="100" required>
+    <label for="profileAge">Age <span>(optional)</span></label>
+    <input id="profileAge" type="number" min="1" max="120" inputmode="numeric">
+    <p class="account-help">You can change your passport photo in My Heritage Passport.</p>
+    <button class="btn account-primary" id="accountSaveProfile" type="submit">Save details</button>
+    <button class="btn-link" id="accountSignOut" type="button">Log out</button>
+  </form>
+  <p id="accountMessage" role="status" aria-live="polite"></p>
+</dialog>
+
+<dialog id="siteDialog">
+  <form method="dialog">
+    <div class="dlg-stamp" id="dlgStamp"></div>
+    <h3 id="dlgTitle"></h3>
+    <p id="dlgStory"></p>
+    <p class="dlg-hint" id="dlgHint"></p>
+    <div class="site-location">
+      <h4 id="dlgLocationLabel"></h4>
+      <p id="dlgLocation"></p>
+      <iframe id="dlgMapFrame" class="site-map" title="Heritage site location" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+    </div>
+    <a class="dlg-map" id="dlgMap" target="_blank" rel="noopener"></a>
+    <a class="dlg-map" id="dlgDirections" target="_blank" rel="noopener"></a>
+    <div class="dlg-actions">
+      <button class="btn btn-solid sm" id="dlgDemo" value="demo" hidden></button>
+      <button class="btn btn-ghost sm" value="close" id="dlgClose"></button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="syncDialog">
+  <form method="dialog" onsubmit="return false">
+    <h3 data-i18n="syncTitle"></h3>
+    <p data-i18n="syncText"></p>
+    <input id="syncEmail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" aria-label="Email">
+    <p class="dlg-hint" id="syncMsg" role="status"></p>
+    <div class="dlg-actions">
+      <button type="button" class="btn btn-solid sm" id="syncSave" data-i18n="syncSave"></button>
+      <button type="button" class="btn btn-ghost sm" id="syncRestore" data-i18n="syncRestore"></button>
+      <button type="button" class="btn-link" id="syncClose" data-i18n="close"></button>
+    </div>
+  </form>
+</dialog>
+
+<div id="scanner" hidden>
+  <video id="scanVideo" playsinline muted></video>
+  <div class="scan-frame"><i class="scan-line"></i></div>
+  <p id="scanMsg"></p>
+  <button class="btn btn-ghost" id="scanClose"></button>
+</div>
+<canvas id="scanCanvas" hidden></canvas>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="config.js?v=12"></script>
+<script src="vendor/supabase.js"></script>
+<script src="cloud.js?v=12"></script>
+<script src="vendor/jsQR.js"></script>
+<script src="app.js?v=12"></script>
+<script src="account.js?v=12"></script>
+</body>
+</html>

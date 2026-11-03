@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SILIP · Printable QR Codes</title>
+<meta name="theme-color" content="#0b3a73">
+<style>
+  :root{--navy:#0b3a73;--sand:#f7e3c4}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Times New Roman",Times,serif;background:var(--sand);color:var(--navy)}
+  header{display:flex;align-items:center;gap:14px;padding:18px 24px;background:#fdf4e6}
+  header h1{margin:0;font-weight:400;font-size:1.8rem;letter-spacing:.04em}
+  header p{margin:0}
+  main{max-width:900px;margin:0 auto;padding:20px 24px 40px}
+  .tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px}
+  .tools label{font-weight:700}
+  .tools input{flex:1;min-width:260px;padding:10px 12px;border:2px solid var(--navy);border-radius:10px;font:inherit;background:#fff;color:var(--navy)}
+  button{padding:10px 18px;border:0;border-radius:12px;background:var(--navy);color:#fff;font:inherit;cursor:pointer}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+  .card{background:#fff;border:3px solid var(--navy);border-radius:18px;padding:18px;text-align:center;break-inside:avoid}
+  .card svg{width:100%;max-width:210px;height:auto}
+  .card h2{margin:8px 0 2px;font-size:1.15rem}
+  .card p{margin:0;font-size:.9rem;opacity:.85}
+  .card code{display:block;margin-top:8px;font-size:.7rem;word-break:break-all;opacity:.6}
+  .note{font-size:.9rem;opacity:.85;margin-top:18px}
+  @media print{header,.tools,.note{display:none}body{background:#fff}.grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header>
+  <img src="icons/icon.svg" width="56" height="56" alt="">
+  <div><h1>SILIP</h1><p>Printable QR codes for each heritage site</p></div>
+</header>
+<main>
+  <div class="tools">
+    <label for="base">App URL</label>
+    <input id="base" type="url" inputmode="url" spellcheck="false">
+    <button id="print">Print</button>
+  </div>
+  <div class="grid" id="grid"></div>
+  <p class="note">Each code opens SILIP and unlocks that site’s stamp. Set the App URL to your live HTTPS address, then print and place each code at its site.</p>
+</main>
+<script src="vendor/qrcode.js"></script>
+<script>
+  const SITES = [
+    ['barasoain', 'Barasoain Church'],
+    ['casa-real', 'Casa Real'],
+    ['cathedral', 'Malolos Cathedral'],
+    ['bahay', 'Bahay ng mga Kababaihan ng Malolos']
+  ];
+  const input = document.getElementById('base');
+  const grid = document.getElementById('grid');
+  input.value = location.origin + location.pathname.replace(/qr\.html$/, '');
+  function render() {
+    const base = input.value.trim().replace(/\/?$/, '/');
+    grid.innerHTML = '';
+    SITES.forEach(([id, name]) => {
+      const url = base + '?stamp=' + id;
+      const qr = qrcode(0, 'M'); qr.addData(url); qr.make();
+      const card = document.createElement('div'); card.className = 'card';
+      card.innerHTML = qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true }) +
+        '<h2></h2><p>Scan to collect the stamp</p><code></code>';
+      card.querySelector('h2').textContent = name;
+      card.querySelector('code').textContent = url;
+      grid.appendChild(card);
+    });
+  }
+  input.addEventListener('input', render);
+  document.getElementById('print').addEventListener('click', () => window.print());
+  render();
+</script>
+</body>
+</html>
