@@ -4,9 +4,34 @@
   const cloud = window.SilipCloud, $ = s => document.querySelector(s);
   const dialog = $('#accountDialog'), message = $('#accountMessage');
   let mode = 'login', email = '', otpType = '', draft = null, busy = false, resendAt = 0;
-  let timer, returnToPassport = false;
+  let timer, returnToPassport = false, verificationActive = false, previousScreen = 'home';
+  const PENDING_KEY = 'silip.pending-verification';
   const localProfile = () => window.SilipPassport.profile();
-  function status(text, error = false) { message.textContent = text; message.classList.toggle('error', error); }
+  function status(text, error = false) {
+    const target = verificationActive ? $('#verificationMessage') : message;
+    target.textContent = text; target.classList.toggle('error', error);
+  }
+  function savePendingVerification() {
+    // Keep only non-credential form details for reloads. Never persist passwords or OTPs.
+    try { sessionStorage.setItem(PENDING_KEY, JSON.stringify({ email, mode, otpType, resendAt, draft, previousScreen, returnToPassport })); } catch {}
+  }
+  function openVerification() {
+    if (!verificationActive) previousScreen = location.hash.slice(1) || 'home';
+    verificationActive = true;
+    $('#accountCodeForm').hidden = false;
+    $('#verificationTitle').textContent = mode === 'create' ? 'Confirm your account' : 'Verify your email';
+    $('#accountCodeSent').textContent = `Requesting a verification code for ${email}.`;
+    $('#accountVerify').textContent = mode === 'create' ? 'Confirm account' : 'Confirm email';
+    savePendingVerification();
+    dialog.close();
+    window.SilipPassport.navigate('verify-account');
+  }
+  function leaveVerification(destination = 'passport') {
+    verificationActive = false; otpType = ''; clearInterval(timer);
+    try { sessionStorage.removeItem(PENDING_KEY); } catch {}
+    clearPasswords();
+    window.SilipPassport.navigate(destination);
+  }
   function clearPasswords() {
     ['#accountPassword', '#accountConfirm', '#accountNewPassword', '#accountNewConfirm'].forEach(s => { $(s).value = ''; });
   }
@@ -18,6 +43,10 @@
     return (e.message || 'Could not complete this request. Please try again.') + (e.code ? ` (${e.code})` : '');
   }
   function showPasswordSetup() {
+    if (verificationActive) {
+      leaveVerification(); returnToPassport = true; dialog.showModal();
+      timer = setInterval(cooldown, 1000);
+    }
     $('#accountAuth').hidden = true; $('#accountProfileForm').hidden = true;
     $('#accountPasswordForm').hidden = false; clearPasswords();
   }
@@ -27,7 +56,9 @@
   }
   function cooldown() {
     const seconds = Math.max(0, Math.ceil((resendAt - Date.now()) / 1000));
-    $('#accountResend').disabled = busy || seconds > 0;
+    $('#accountResend').disabled = busy || seconds > 0 || !cloud.enabled || !email;
+    $('#accountVerify').disabled = busy || !otpType;
+    $('#accountCode').disabled = busy || !otpType;
     $('#accountSend').disabled = busy || !cloud.enabled || (mode !== 'login' && seconds > 0);
     $('#accountResend').textContent = seconds ? `Resend in ${seconds}s` : 'Resend code';
     $('#accountSend').textContent = mode === 'login' ? 'Log in' : seconds ? `Try again in ${seconds}s` : mode === 'create' ? 'Create account' : 'Send reset code';
@@ -35,7 +66,7 @@
   function setBusy(value) {
     busy = value;
     dialog.setAttribute('aria-busy', String(value));
-    dialog.querySelectorAll('button, input').forEach(el => { el.disabled = value; });
+    document.querySelectorAll('#accountDialog button, #accountDialog input, #verify-account button, #verify-account input').forEach(el => { el.disabled = value; });
     $('#accountIdentityFields').disabled = value || mode !== 'create';
     $('#accountPasswordFields').disabled = value || mode === 'recover';
     $('#accountConfirm').disabled = value || mode !== 'create';
@@ -74,6 +105,7 @@
   }
   function updateEntry() { $('#accountBtn').textContent = cloud.hasVerifiedEmail() ? 'My account' : 'Log in / Sign up'; }
   async function openAccount(mode = 'login', returnTo = '') {
+    if (verificationActive) { window.SilipPassport.navigate('verify-account'); return; }
     if (dialog.open) return;
     returnToPassport = returnTo === 'passport';
     status(''); selectMode(mode);
@@ -94,20 +126,34 @@
   window.addEventListener('silip:open-account', e => openAccount(e.detail?.mode === 'create' ? 'create' : 'login', e.detail?.returnTo));
   $('#accountClose').addEventListener('click', () => dialog.close());
   dialog.addEventListener('cancel', e => { if (busy) e.preventDefault(); });
-  dialog.addEventListener('close', () => { clearInterval(timer); $('#accountCode').value = ''; clearPasswords(); });
+  dialog.addEventListener('close', () => {
+    if (verificationActive) return;
+    clearInterval(timer); $('#accountCode').value = ''; clearPasswords();
+  });
   $('#accountLoginTab').addEventListener('click', () => selectMode('login'));
   $('#accountCreateTab').addEventListener('click', () => {
     selectMode('create'); const p = localProfile();
     $('#accountName').value = p.name; $('#accountAge').value = p.age;
   });
-  $('#accountChangeEmail').addEventListener('click', () => { selectMode(mode); $('#accountEmail').focus(); });
+  function backToDetails() {
+    if (busy) return;
+    const selectedMode = mode, savedDraft = draft, selectedReturn = returnToPassport;
+    leaveVerification(previousScreen === 'verify-account' ? 'home' : previousScreen);
+    openAccount(selectedMode, selectedReturn ? 'passport' : '');
+    if (savedDraft && selectedMode === 'create') {
+      $('#accountName').value = savedDraft.name; $('#accountAge').value = savedDraft.age;
+    }
+    $('#accountEmail').focus();
+  }
+  $('#accountChangeEmail').addEventListener('click', backToDetails);
+  $('#verificationBack').addEventListener('click', backToDetails);
   $('#accountForgot').addEventListener('click', () => selectMode('recover'));
   $('#accountSetPassword').addEventListener('click', () => { showPasswordSetup(); status(''); });
   async function sendCode() {
     if (busy || (mode !== 'login' && Date.now() < resendAt) || !cloud.enabled) return;
     email = normalizeEmail($('#accountEmail').value);
     if (!email) { status('Enter a valid email address, such as yourname@gmail.com.', true); return; }
-    if (mode === 'create') {
+    if (mode === 'create' && !verificationActive) {
       const name = $('#accountName').value.trim(), age = $('#accountAge').value;
       if (!name || !$('#accountAge').checkValidity()) { status('Enter your name and a valid age from 1 to 120, or leave age blank.', true); return; }
       if ($('#accountPassword').value.length < 8) { status('Use at least 8 characters for your password.', true); return; }
@@ -125,6 +171,7 @@
       finally { clearPasswords(); setBusy(false); updateEntry(); }
       return;
     }
+    openVerification();
     setBusy(true); status('Sending your verification code…');
     try {
       otpType = await cloud.requestEmailCode(email, mode === 'create');
@@ -132,13 +179,16 @@
       $('#accountEmailForm').hidden = true; $('#accountCodeForm').hidden = false;
       $('#accountCodeSent').textContent = `Enter the code sent to ${email}.`;
       $('#accountCode').value = ''; status('Check your inbox and spam folder.');
+      savePendingVerification();
     } catch (e) {
       if (e.status === 429 || /rate|too many|seconds/i.test(e.message || '')) resendAt = Date.now() + 60000;
       if (/email_address_not_authorized|email_not_allowed/i.test(e.code || '') || /not authorized|not allowed.*email/i.test(e.message || '')) {
         status('Email delivery is limited to project team addresses until the site owner configures an email sender.', true);
       } else if (e.status === 429) {
         status('Too many email requests. Please wait before trying again.', true);
-      } else status(accountError(e), true);
+      } else status('No new code was sent. ' + accountError(e), true);
+      if (!otpType) $('#accountCodeSent').textContent = `We could not send a verification code to ${email}.`;
+      savePendingVerification();
     } finally { setBusy(false); if (!$('#accountCodeForm').hidden) $('#accountCode').focus(); }
   }
   $('#accountEmailForm').addEventListener('submit', e => { e.preventDefault(); sendCode(); });
@@ -159,9 +209,11 @@
       draft = null;
       await window.SilipPassport.refresh();
       await showProfile(); status('You’re signed in. Your passport is linked to your account.');
+      if (verificationActive) leaveVerification('passport');
       if (returnToPassport) dialog.close();
     } catch (e) {
       if (verified) {
+        if (verificationActive) { leaveVerification(); dialog.showModal(); timer = setInterval(cooldown, 1000); }
         $('#accountAuth').hidden = true; $('#accountProfileForm').hidden = false;
         $('#accountVerified').textContent = `Verified email: ${email}`;
         $('#profileName').value = draft?.name || ''; $('#profileAge').value = draft?.age || '';
@@ -205,5 +257,26 @@
     finally { setBusy(false); updateEntry(); }
   });
   window.addEventListener('silip:auth', updateEntry);
+  if (location.hash === '#verify-account') {
+    let pending;
+    try { pending = JSON.parse(sessionStorage.getItem(PENDING_KEY)); } catch {}
+    if (pending && normalizeEmail(pending.email) && ['create', 'recover'].includes(pending.mode)) {
+      selectMode(pending.mode);
+      email = normalizeEmail(pending.email); draft = pending.draft || null;
+      otpType = ['email', 'email_change'].includes(pending.otpType) ? pending.otpType : '';
+      resendAt = Number(pending.resendAt) || 0; previousScreen = pending.previousScreen || 'home';
+      returnToPassport = !!pending.returnToPassport;
+      $('#accountEmail').value = email;
+      verificationActive = true;
+      openVerification();
+      $('#accountCodeSent').textContent = otpType ? `Enter the code sent to ${email}.` : `No code has been sent to ${email} yet.`;
+      status(otpType ? 'Check your inbox and spam folder. After confirmation, you may need to re-enter your chosen password.' : 'Use Resend code to request an email.');
+      timer = setInterval(cooldown, 1000); cooldown();
+    } else {
+      mode = 'create'; verificationActive = true; $('#accountCodeForm').hidden = false;
+      $('#accountCodeSent').textContent = 'There is no pending account verification.';
+      status('Return to account details to create your account.'); cooldown(); $('#accountResend').disabled = true;
+    }
+  }
   updateEntry();
 })();

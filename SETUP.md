@@ -67,6 +67,14 @@ Use **Log in / Sign up**. Create account takes a name, optional age, and email a
 Log in takes the account's email and password and does not send an email code.
 Create account also asks for a password and confirmation (at least 8 characters),
 then verifies the email once before setting the password through Supabase Auth.
+Clicking **Create account** opens the separate `#verify-account` screen. Enter the
+code from the email and press **Confirm account**. Supabase checks the code before
+the app saves the password and profile and opens the passport. If the send request
+fails, the screen displays the error and disables confirmation until a request
+succeeds. **Resend code** and **Change email** are available there.
+Reloading this screen restores pending verification details for the current tab;
+passwords and codes are never stored. After a reload, a verified user is asked to
+set their password again to finish signup.
 Gmail and other email providers are accepted. No phone number or Twilio account is needed.
 The UI enforces a 60-second resend delay; Supabase also enforces server-side limits.
 
@@ -83,7 +91,7 @@ In Supabase Authentication:
    to both templates and save. The complete suggested template is in
    `supabase/templates/email-code.html`. It retains a confirmation link so the
    existing admin magic-link login continues to work. Enter the numeric code in
-   the SILIP form for account creation and login.
+   the SILIP verification page for account creation or password recovery.
 3. Keep the deployed site URL and allowed redirect URLs configured correctly.
 4. For initial testing without SMTP, use the email belonging to a project team
    member. Supabase's default email sender only delivers to project team addresses
@@ -99,6 +107,10 @@ Signed-in users can also choose **Set or change password** under My account.
 Signup, recovery, and email verification still require working SMTP. Password
 login does not bypass email confirmation or repair email delivery problems.
 Auth failures now display the provider message and error code as plain text.
+If no email arrives, check **Supabase → Logs → Auth** for the failed request's
+underlying SMTP error. A successful browser request does not prove inbox delivery.
+Check the sender, SMTP credentials, and provider logs against that error; changing
+the database schema does not repair SMTP delivery. Keep credentials private.
 Saved sessions are checked against Supabase Auth on startup. If the user or
 refresh token has been deleted, the app signs out only this browser and creates
 a fresh guest session. Signup also retries once if its guest was deleted after

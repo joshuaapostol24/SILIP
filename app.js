@@ -530,6 +530,7 @@
     finally { refreshView(); }
   }
   window.SilipPassport = {
+    navigate: show,
     profile: profileData,
     async refresh() { clearTimeout(profileTimer); state.profileDirty = false; save(); await syncAll(); if (syncTask) await syncTask; }
   };
@@ -587,7 +588,7 @@
       await collect(qrStamp, qrToken);
     } else {
       const h = location.hash.slice(1);
-      show(['home', 'stamps', 'passport', 'thanks'].includes(h) ? h : 'home');
+      show(['home', 'stamps', 'passport', 'thanks', 'verify-account'].includes(h) ? h : 'home');
     }
     syncAll();
   })();

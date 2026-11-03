@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600&family=Great+Vibes&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body>
 
@@ -170,6 +170,32 @@
       <button class="btn-link reset" id="resetBtn" data-i18n="reset"></button>
     </div>
   </section>
+  <section class="screen" id="verify-account" hidden aria-labelledby="verificationTitle">
+    <header class="bar">
+      <svg class="logo small"><use href="#logo"/></svg>
+      <div><div class="brand xs">SILIP</div><div class="brand-sub xs">Digital Heritage Passport</div></div>
+    </header>
+    <div class="verification-body">
+      <button type="button" class="btn-link verification-back" id="verificationBack">← Back to account details</button>
+      <div class="verification-card">
+        <p class="verification-step">Account verification</p>
+        <svg class="verification-envelope" viewBox="0 0 64 52" aria-hidden="true"><rect x="3" y="3" width="58" height="46" rx="8" fill="none" stroke="currentColor" stroke-width="3"/><path d="m5 8 27 21L59 8M5 45l18-18m36 18L41 27" fill="none" stroke="currentColor" stroke-width="3"/></svg>
+        <h1 id="verificationTitle">Confirm your account</h1>
+        <p id="accountCodeSent"></p>
+        <form id="accountCodeForm" hidden>
+          <label for="accountCode">Email verification code</label>
+          <input id="accountCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" minlength="6" maxlength="10" required disabled>
+          <button class="btn account-primary" id="accountVerify" type="submit" disabled>Confirm account</button>
+          <p class="verification-help">Enter the code from your email. Your account is confirmed only after the code is accepted.</p>
+          <div class="account-code-actions">
+            <button class="btn-link" id="accountResend" type="button">Resend code</button>
+            <button class="btn-link" id="accountChangeEmail" type="button">Change email</button>
+          </div>
+        </form>
+        <p id="verificationMessage" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
 </main>
 
 <dialog id="accountDialog" aria-labelledby="accountTitle">
@@ -205,16 +231,6 @@
       <button class="btn account-primary" id="accountSend" type="submit">Log in</button>
       <p class="account-help" id="accountAuthHelp">Log in with your email and password.</p>
       <button class="btn-link" id="accountForgot" type="button">Forgot or need a password?</button>
-    </form>
-    <form id="accountCodeForm" hidden>
-      <p id="accountCodeSent"></p>
-      <label for="accountCode">Verification code</label>
-      <input id="accountCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" minlength="6" maxlength="10" required>
-      <button class="btn account-primary" id="accountVerify" type="submit">Verify and continue</button>
-      <div class="account-code-actions">
-        <button class="btn-link" id="accountResend" type="button">Resend code</button>
-        <button class="btn-link" id="accountChangeEmail" type="button">Change email</button>
-      </div>
     </form>
   </div>
   <form id="accountPasswordForm" hidden>
@@ -284,11 +300,11 @@
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="config.js?v=14"></script>
+<script src="config.js?v=15"></script>
 <script src="vendor/supabase.js"></script>
-<script src="cloud.js?v=14"></script>
+<script src="cloud.js?v=15"></script>
 <script src="vendor/jsQR.js"></script>
-<script src="app.js?v=14"></script>
-<script src="account.js?v=14"></script>
+<script src="app.js?v=15"></script>
+<script src="account.js?v=15"></script>
 </body>
 </html>
