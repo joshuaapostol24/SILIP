@@ -99,6 +99,10 @@ Signed-in users can also choose **Set or change password** under My account.
 Signup, recovery, and email verification still require working SMTP. Password
 login does not bypass email confirmation or repair email delivery problems.
 Auth failures now display the provider message and error code as plain text.
+Saved sessions are checked against Supabase Auth on startup. If the user or
+refresh token has been deleted, the app signs out only this browser and creates
+a fresh guest session. Signup also retries once if its guest was deleted after
+startup. Network and SMTP errors do not trigger this reset.
 
 Signing up upgrades the guest identity in place. Logging into an existing account restores
 that account's saved profile and verified stamps; it does not import another account's stamps.

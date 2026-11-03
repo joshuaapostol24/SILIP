@@ -3,14 +3,26 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 
-function setup(enabled = true) {
+function setup(enabled = true, options = {}) {
   let user = { id: 'guest-1', is_anonymous: true }, callback;
   const calls = [], profiles = new Map();
   const auth = {
     onAuthStateChange(fn) { callback = fn; },
-    async getSession() { return { data: { session: { user } } }; },
-    async signInAnonymously() { user = { id: 'guest-2', is_anonymous: true }; callback('SIGNED_IN', { user }); return { data: { session: { user } } }; },
-    async updateUser(input) { calls.push(['update', input]); return { data: { user } }; },
+    async getSession() { return { data: { session: { user } }, error: options.sessionError || null }; },
+    async getUser() {
+      if (options.validationError && user.id === 'guest-1') return { data: { user: null }, error: options.validationError };
+      return { data: { user } };
+    },
+    async signInAnonymously() { calls.push(['guest']); user = { id: 'guest-2', is_anonymous: true }; callback('SIGNED_IN', { user }); return { data: { session: { user } } }; },
+    async updateUser(input) {
+      calls.push(['update', input]);
+      if (options.updateError) {
+        const error = options.updateError;
+        if (!options.repeatError) options.updateError = null;
+        return { error };
+      }
+      return { data: { user } };
+    },
     async signInWithOtp(input) { calls.push(['otp', input]); return { data: {} }; },
     async signInWithPassword(input) {
       calls.push(['password-login', { email: input.email }]);
@@ -24,7 +36,7 @@ function setup(enabled = true) {
       user = { id: input.type === 'email_change' ? user.id : 'existing-user', email: input.email, email_confirmed_at: '2026-11-03T00:00:00Z', is_anonymous: false };
       callback('SIGNED_IN', { user }); return { data: { session: { user } } };
     },
-    async signOut(input) { calls.push(['logout', input]); callback('SIGNED_OUT', null); return {}; }
+    async signOut(input) { calls.push(['logout', input]); callback('SIGNED_OUT', null); return { error: options.signOutError || null }; }
   };
   const client = { auth, from(table) {
     return {
@@ -108,4 +120,44 @@ test('password creation requires a verified email and never writes passwords to 
   assert.equal(calls.at(-1)[0], 'update');
   assert.equal(Object.keys(calls.at(-1)[1]).join(','), 'password');
   assert.equal(calls.some(c => c[0] === 'upsert'), false);
+});
+
+test('a deleted cached user is signed out locally and replaced before signup', async () => {
+  const { cloud, calls } = setup(true, { validationError: { code: 'user_not_found', message: 'Deleted user' } });
+  await cloud.requestEmailCode('maria@gmail.com', true);
+  assert.equal(cloud.uid(), 'guest-2');
+  assert.equal(calls[0][0], 'logout');
+  assert.equal(calls[0][1].scope, 'local');
+  assert.equal(calls.filter(c => c[0] === 'guest').length, 1);
+  assert.equal(calls.filter(c => c[0] === 'update').length, 1);
+});
+
+test('a stale refresh token also recovers, including when signOut reports a missing user', async () => {
+  const { cloud, calls } = setup(true, { sessionError: { code: 'refresh_token_not_found' }, signOutError: { code: 'user_not_found' } });
+  await cloud.init();
+  assert.equal(cloud.uid(), 'guest-2');
+  assert.equal(calls.filter(c => c[0] === 'guest').length, 1);
+});
+
+test('signup recovers once if the guest is deleted after startup', async () => {
+  const { cloud, calls } = setup(true, { updateError: { code: 'user_not_found' } });
+  await cloud.requestEmailCode('maria@gmail.com', true);
+  assert.equal(cloud.uid(), 'guest-2');
+  assert.equal(calls.filter(c => c[0] === 'update').length, 2);
+});
+
+test('repeated missing-user errors do not cause an unlimited signup retry', async () => {
+  const { cloud, calls } = setup(true, { updateError: { code: 'user_not_found' }, repeatError: true });
+  await assert.rejects(cloud.requestEmailCode('maria@gmail.com', true), e => e.code === 'user_not_found');
+  assert.equal(calls.filter(c => c[0] === 'update').length, 2);
+});
+
+test('network and email delivery failures do not discard the current session', async () => {
+  const network = setup(true, { validationError: { code: 'network_error', message: 'Failed to fetch' } });
+  await assert.rejects(network.cloud.init(), e => e.message === 'Failed to fetch');
+  assert.equal(network.calls.some(c => c[0] === 'logout' || c[0] === 'guest'), false);
+  const smtp = setup(true, { updateError: { code: 'unexpected_failure', message: 'Error sending email change email' } });
+  await assert.rejects(smtp.cloud.requestEmailCode('maria@gmail.com', true), e => e.message === 'Error sending email change email');
+  assert.equal(smtp.cloud.uid(), 'guest-1');
+  assert.equal(smtp.calls.some(c => c[0] === 'logout' || c[0] === 'guest'), false);
 });

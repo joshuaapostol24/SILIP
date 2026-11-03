@@ -11,6 +11,7 @@
     ['#accountPassword', '#accountConfirm', '#accountNewPassword', '#accountNewConfirm'].forEach(s => { $(s).value = ''; });
   }
   function accountError(e) {
+    if (['user_not_found', 'session_not_found', 'refresh_token_not_found'].includes(e.code)) return 'Your saved session has expired. Refresh the page and try again.';
     if (e.code === 'invalid_credentials') return 'Incorrect email or password. If you registered before passwords were added, choose “Forgot or need a password?”.';
     if (e.code === 'email_not_confirmed') return 'Verify your email first. Choose “Forgot or need a password?” to request a verification code.';
     if (e.status === 429) return 'Too many requests. Please wait before trying again.';

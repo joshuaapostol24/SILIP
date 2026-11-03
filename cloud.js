@@ -4,8 +4,25 @@
   const cfg = window.SILIP_CONFIG || {};
   const lib = window.supabase && window.supabase.createClient;
   const enabled = !!(cfg.supabaseUrl && cfg.supabaseKey && lib);
-  let sb = null, session = null, ready = null;
+  let sb = null, session = null, ready = null, recovering = null;
   const redirectTo = () => location.origin + location.pathname.replace(/[^/]*$/, '');
+  const missingSession = error => ['user_not_found', 'session_not_found', 'refresh_token_not_found'].includes(error?.code);
+
+  // A deleted Auth user can leave an unexpired JWT in this browser. Recover only
+  // from explicit missing-session errors; connection failures must not sign users out.
+  function recoverGuestSession() {
+    if (!recovering) {
+      recovering = (async () => {
+        const out = await sb.auth.signOut({ scope: 'local' });
+        if (out.error && !missingSession(out.error)) throw out.error;
+        session = null;
+        const guest = await sb.auth.signInAnonymously();
+        if (guest.error) throw guest.error;
+        session = guest.data.session;
+      })().finally(() => { recovering = null; });
+    }
+    return recovering;
+  }
 
   const Cloud = {
     enabled,
@@ -17,19 +34,32 @@
       if (!enabled) return Promise.resolve(null);
       if (!ready) {
         ready = (async () => {
-          sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey, {
-            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-          });
-          sb.auth.onAuthStateChange((ev, s) => {
-            session = s;
-            // Defer queries until the auth callback releases its lock.
-            setTimeout(() => {
-              if (['SIGNED_IN', 'USER_UPDATED', 'SIGNED_OUT'].includes(ev) && Cloud.onSignIn) Cloud.onSignIn();
-              window.dispatchEvent(new CustomEvent('silip:auth', { detail: ev }));
-            }, 0);
-          });
+          if (!sb) {
+            sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey, {
+              auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+            });
+            sb.auth.onAuthStateChange((ev, s) => {
+              session = s;
+              // Defer queries until the auth callback releases its lock.
+              setTimeout(() => {
+                if (['SIGNED_IN', 'USER_UPDATED', 'SIGNED_OUT'].includes(ev) && Cloud.onSignIn) Cloud.onSignIn();
+                window.dispatchEvent(new CustomEvent('silip:auth', { detail: ev }));
+              }, 0);
+            });
+          }
           const got = await sb.auth.getSession();
-          session = got.data.session;
+          if (got.error) {
+            if (!missingSession(got.error)) throw got.error;
+            await recoverGuestSession();
+          } else session = got.data.session;
+          if (session) {
+            // getSession reads cached credentials; getUser checks the Auth server.
+            const checked = await sb.auth.getUser();
+            if (checked.error) {
+              if (!missingSession(checked.error)) throw checked.error;
+              await recoverGuestSession();
+            } else if (checked.data.user) session = { ...session, user: checked.data.user };
+          }
           if (!session) {
             const r = await sb.auth.signInAnonymously();
             if (r.error) throw r.error;
@@ -69,9 +99,14 @@
       if (!enabled) throw new Error('Account service is not configured.');
       await Cloud.init();
       // Upgrade the guest identity to keep its verified stamps on the same account.
-      const result = createAccount
+      let result = createAccount
         ? await sb.auth.updateUser({ email }, { emailRedirectTo: redirectTo() })
         : await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: redirectTo() } });
+      if (createAccount && missingSession(result.error)) {
+        // Covers a user deleted after startup. Retry the explicit signup once only.
+        await recoverGuestSession();
+        result = await sb.auth.updateUser({ email }, { emailRedirectTo: redirectTo() });
+      }
       if (result.error) throw result.error;
       return createAccount ? 'email_change' : 'email';
     },
