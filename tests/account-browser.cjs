@@ -77,6 +77,17 @@ const pause=()=>new Promise(r=>setTimeout(r,150));
     fs.writeFileSync('assets/passport-unlocked-preview.png',Buffer.from((await p.call('Page.captureScreenshot',{format:'png'})).data,'base64'));
     console.log('PASS: signup validates email/password and opens passport directly without OTP');
     console.log('PASS: guest passport is blurred and inert; signup unlocks it with synced name and stamps');
+    for(const width of [320,390,1440]) {
+      await p.call('Emulation.setDeviceMetricsOverride',{width,height:844,deviceScaleFactor:1,mobile:width<600});
+      await p.ev(`document.querySelector('#fName').focus();document.querySelector('#fName').value='Alexandria Maria Gabriela de los Santos Villanueva';document.querySelector('#fName').dispatchEvent(new Event('input'))`);await pause();
+      assert.equal(await p.ev(`document.querySelector('#fName').scrollHeight <= document.querySelector('#fName').clientHeight+2`),true,'Long name is clipped');
+      assert.equal(await p.ev(`document.querySelector('.pp-page.top').scrollWidth <= document.querySelector('.pp-page.top').clientWidth+1`),true,'Passport details overflow');
+    }
+    await p.call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+    await p.ev(`document.querySelector('#fName').value='Joshua Floyd Apostol';document.querySelector('#fName').dispatchEvent(new Event('input'));document.querySelector('#fName').blur()`);await pause();
+    fs.writeFileSync('assets/passport-details-preview.png',Buffer.from((await p.call('Page.captureScreenshot',{format:'png'})).data,'base64'));
+    await p.ev(`document.querySelector('#fName').value='Maria Santos';document.querySelector('#fName').dispatchEvent(new Event('input'))`);
+    console.log('PASS: passport names wrap completely at small-phone, phone, and desktop widths');
     await p.ev(`document.querySelector('#accountBtn').click()`);await pause();
     await p.ev(`document.querySelector('#accountSignOut').click()`);await pause();
     assert.equal(await p.ev(`window.SilipPassport.profile().name`),'');

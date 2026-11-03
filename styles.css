@@ -351,7 +351,22 @@ button:disabled{cursor:default}
 .btn-scan{border:1px solid var(--navy);border-radius:14px;width:100%;font-size:14px}
 .passport{border:1px solid #123f7055;box-shadow:0 8px 24px #123f7012;border-radius:16px}
 .pp-page{background:repeating-linear-gradient(45deg,#eee3d508 0 2px,#b79c6c0c 2px 6px),#faf4e7;color:var(--ink)}
-.pp-page.top{border-bottom:1px dashed #123f7055;gap:12px}
+.pp-page.top{border-bottom:1px dashed #123f7055;grid-template-columns:minmax(92px,.8fr) minmax(0,1.5fr);align-items:start;gap:20px 18px;padding:22px 20px 0;min-height:0;font-family:var(--sans)}
+.pp-card-label{grid-column:1/-1;margin:0;padding:0 44px 12px 0;border-bottom:1px solid var(--line);font:600 10px/1.5 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.pp-fields{min-width:0;display:flex;flex-direction:column;justify-content:flex-start;gap:18px;padding-top:0}
+.pp-field-label{display:block;font:500 10px/1.5 var(--sans);color:var(--muted);margin:0 0 5px}
+.pp-name-field{min-width:0}
+.pp-fields textarea.f-name{display:block;width:100%;min-height:38px;box-sizing:border-box;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:var(--navy);padding:0 0 8px;text-align:left;text-transform:none;font:500 19px/1.4 var(--serif);resize:none;overflow:hidden;overflow-wrap:anywhere}
+.pp-fields textarea.f-name::placeholder{color:var(--muted);font-size:16px;font-weight:400}
+.pp-fields textarea.f-name:focus-visible{outline:2px solid var(--gold);outline-offset:4px;border-radius:3px}
+.pp-metadata{display:grid;grid-template-columns:48px minmax(0,1fr);gap:14px;align-items:start}
+.pp-meta{min-width:0}
+.pp-meta #fAge{width:44px;min-height:36px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:#fffaf18c;font:14px/1.5 var(--sans)}
+.pp-meta #fIssued{display:block;padding-top:7px;font:500 12px/1.6 var(--sans);color:var(--navy);overflow-wrap:normal}
+.pp-page.top .mrz{margin:0 -20px;padding:14px 20px;border-top:1px solid var(--line);background:#123f7005;font:clamp(7px,1.9vw,10px)/1.8 "Courier New",monospace;letter-spacing:0;color:var(--muted)}
+.pp-page.top .seal{top:10px;right:14px;width:40px;height:40px;transform:rotate(10deg)}
+.pp-page.top .photo{position:relative;width:100%;aspect-ratio:4/5;border-radius:10px;box-shadow:0 2px 8px #123f700b}
+.photo-hint{position:absolute;bottom:0;left:0;right:0;padding:6px 3px;background:#123f70e8;color:#fff;text-align:center;font:500 9px/1.5 var(--sans);pointer-events:none}
 .pp-page.bottom{min-height:230px;background:repeating-linear-gradient(-45deg,#eee3d508 0 2px,#b79c6c0c 2px 6px),#faf4e7}
 .pp-fields input{min-width:0;width:100%;font-size:14px;min-height:40px;border-bottom:1px solid #123f7070;color:var(--navy)}
 .f-row input{width:50px}.f-row{font-size:11px}.f-row.small{font-size:9px;flex-wrap:wrap}.mrz{font-size:9px}

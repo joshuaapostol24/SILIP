@@ -5,6 +5,7 @@
   /* ---------- Content (EN / FIL) ---------- */
   const I18N = {
     en: {
+      personalDetails: 'Personal details', holderName: 'Full name', holderAge: 'Age', holderIssued: 'Issued on', changePhoto: 'Change photo',
       heritagePlace: 'MALOLOS, BULACAN', navHome: 'Home', navSites: 'Heritage sites', navScan: 'Scan QR', navPassport: 'Passport',
       collectedLabel: 'Collected', visitLabel: 'View location',
       passportLocked: 'Unlock your heritage passport',
@@ -42,6 +43,7 @@
       syncOn: 'Synced', syncAcct: 'Synced · {email}', syncOff: 'Offline — will sync later', syncPend: '{n} waiting to verify'
     },
     fil: {
+      personalDetails: 'Personal na detalye', holderName: 'Buong pangalan', holderAge: 'Edad', holderIssued: 'Petsa ng pag-isyu', changePhoto: 'Palitan ang larawan',
       heritagePlace: 'MALOLOS, BULACAN', navHome: 'Simula', navSites: 'Mga pook', navScan: 'Mag-scan', navPassport: 'Pasaporte',
       collectedLabel: 'Nakolekta', visitLabel: 'Lokasyon',
       passportLocked: 'I-unlock ang iyong pasaporte ng pamana',
@@ -315,6 +317,7 @@
   function renderPassport() {
     renderPassportAccess();
     $('#fName').value = state.name;
+    fitPassportName();
     $('#fAge').value = state.age;
     $('#fIssued').textContent = fmtDate(new Date(state.issued));
     $('#mrz').textContent = mrz();
@@ -341,7 +344,15 @@
     });
   }
   $('#fName').maxLength = 100;
-  $('#fName').addEventListener('input', e => { if (!passportUnlocked()) return; state.name = e.target.value; save(); queueProfileSave(); $('#mrz').textContent = mrz(); });
+  function fitPassportName() {
+    const input = $('#fName');
+    if (!input.clientWidth) return;
+    input.style.height = 'auto'; input.style.height = input.scrollHeight + 'px';
+  }
+  $('#fName').addEventListener('input', e => { if (!passportUnlocked()) return; e.target.value = e.target.value.replace(/[\r\n]+/g, ' '); state.name = e.target.value; fitPassportName(); save(); queueProfileSave(); $('#mrz').textContent = mrz(); });
+  $('#fName').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+  window.addEventListener('resize', fitPassportName);
+  document.fonts?.ready.then(fitPassportName);
   $('#fAge').addEventListener('input', e => { if (!passportUnlocked()) return; e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3); state.age = e.target.value; save(); queueProfileSave(); });
   $('#photoInput').addEventListener('change', e => {
     if (!passportUnlocked()) return;
@@ -479,7 +490,7 @@
   function refreshView() {
     renderRank(); renderSync(); renderPassportAccess();
     if (current === 'stamps') renderStamps();
-    if (current === 'passport' && !(document.activeElement && document.activeElement.matches('#passport input'))) renderPassport();
+    if (current === 'passport' && !(document.activeElement && document.activeElement.matches('#passport input, #passport textarea'))) renderPassport();
   }
   let syncTask = null, syncAgain = false, profileTimer;
   const profileData = () => ({ name: state.name, age: state.age, photo: state.photo, issued_at: state.issued });

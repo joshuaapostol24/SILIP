@@ -1,5 +1,5 @@
-const VERSION = 'silip-v17';
-const SHELL = ['./', 'index.html', 'styles.css?v=17', 'app.js?v=17', 'account.js?v=17', 'manifest.json', 'qr.html', 'vendor/jsQR.js', 'vendor/qrcode.js', 'vendor/supabase.js', 'config.js?v=17', 'cloud.js?v=17', 'admin.html',
+const VERSION = 'silip-v18';
+const SHELL = ['./', 'index.html', 'styles.css?v=18', 'app.js?v=18', 'account.js?v=18', 'manifest.json', 'qr.html', 'vendor/jsQR.js', 'vendor/qrcode.js', 'vendor/supabase.js', 'config.js?v=18', 'cloud.js?v=18', 'admin.html',
   'fonts/inter.woff2', 'fonts/playfair-display.woff2', 'fonts/dancing-script.woff2', 'fonts/great-vibes.woff2',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
   'assets/heritage-collage.png', 'assets/thanks.jpg',
